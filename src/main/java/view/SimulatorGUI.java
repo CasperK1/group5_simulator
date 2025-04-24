@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.stage.Stage;
@@ -19,21 +20,12 @@ import javafx.scene.layout.*;
 import javafx.scene.text.*;
 
 public class SimulatorGUI extends Application implements ISimulatorUI {
-
 	// Controller object (UI needs)
 	private IControllerVtoM controller;
-
 	// UI Components:
 	private TextField time;
 	private TextField delay;
 	private Label results;
-	private Label timeLabel;
-	private Label delayLabel;
-	private Label resultLabel;
-	
-	private Button startButton;
-	private Button slowButton;
-	private Button speedUpButton;
 
 	private IVisualisation display;
 
@@ -41,7 +33,6 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
 	@Override
 	public void init(){
 		Trace.setTraceLevel(Level.INFO);
-		controller = new Controller(this);
 	}
 
 	@Override
@@ -49,78 +40,37 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
 		// UI creation
 		try {
 			primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-			    @Override
-			    public void handle(WindowEvent t) {
-			        Platform.exit();
-			        System.exit(0);
-			    }
+				@Override
+				public void handle(WindowEvent t) {
+					Platform.exit();
+					System.exit(0);
+				}
 			});
 
 			primaryStage.setTitle("Simulator");
 
-			startButton = new Button();
-			startButton.setText("Start simulation");
-			startButton.setOnAction(new EventHandler<ActionEvent>() {
-	            @Override
-	            public void handle(ActionEvent event) {
-	                controller.startSimulation();
-	                startButton.setDisable(true);
-	            }
-	        });
+			// Load the FXML file
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/SimulatorGUI.fxml"));
+			Parent root = loader.load();
 
-			slowButton = new Button();
-			slowButton.setText("Slow down");
-			slowButton.setOnAction(e -> controller.decreaseSpeed());
+			// Get the controller instance from the loader
+			Controller fxmlController = loader.getController();
 
-			speedUpButton = new Button();
-			speedUpButton.setText("Speed up");
-			speedUpButton.setOnAction(e -> controller.increaseSpeed());
+			// Initialize controller with this UI
+			fxmlController.setUI(this);
+			this.controller = fxmlController;
 
-			timeLabel = new Label("Simulation time:");
-			timeLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-	        time = new TextField("Give time");
-	        time.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-	        time.setPrefWidth(150);
+			time = (TextField) root.lookup("#simulationTimeField");
+			delay = (TextField) root.lookup("#delayField");
+			results = (Label) root.lookup("#resultsLabel");
 
-	        delayLabel = new Label("Delay:");
-			delayLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-	        delay = new TextField("Give delay");
-	        delay.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-	        delay.setPrefWidth(150);
-	                	        
-	        resultLabel = new Label("Total time:");
-			resultLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-	        results = new Label();
-	        results.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-	        results.setPrefWidth(150);
+			// Set up visualization
+			Canvas canvas = (Canvas) root.lookup("#storeCanvas");
+			display = new Visualisation((int)canvas.getWidth(), (int)canvas.getHeight());
 
-	        HBox hBox = new HBox();
-	        hBox.setPadding(new Insets(15, 12, 15, 12)); // margins up, right, bottom, left
-	        hBox.setSpacing(10);   // node distance 10 pixel
-	        
-	        GridPane grid = new GridPane();
-	        grid.setAlignment(Pos.CENTER);
-	        grid.setVgap(10);
-	        grid.setHgap(5);
-
-	        grid.add(timeLabel, 0, 0);   // column, row
-	        grid.add(time, 1, 0);
-	        grid.add(delayLabel, 0, 1);
-	        grid.add(delay, 1, 1);
-	        grid.add(resultLabel, 0, 2);
-	        grid.add(results, 1, 2);
-	        grid.add(startButton,0, 3);
-	        grid.add(speedUpButton, 0, 4);
-	        grid.add(slowButton, 1, 4);
-	        
-	        display = new Visualisation(400,200);
-
-	        // Fill the box:
-	        hBox.getChildren().addAll(grid, (Canvas) display);
-	        
-	        Scene scene = new Scene(hBox);
-	        primaryStage.setScene(scene);
-	        primaryStage.show();
+			Scene scene = new Scene(root, 800, 600);
+			primaryStage.setScene(scene);
+			primaryStage.show();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -139,13 +89,13 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
 
 	@Override
 	public void setEndingTime(double time) {
-		 DecimalFormat formatter = new DecimalFormat("#0.00");
-		 this.results.setText(formatter.format(time));
+		DecimalFormat formatter = new DecimalFormat("#0.00");
+		this.results.setText(formatter.format(time));
 	}
 
 	@Override
 	public IVisualisation getVisualisation() {
-		 return display;
+		return display;
 	}
 
 	/* JavaFX-application (UI) start-up */
