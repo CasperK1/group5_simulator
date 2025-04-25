@@ -41,7 +41,7 @@ public class Customer {
 			items = 1 + (int)(Math.random() * 10); // 1-10 items
 		} else {
 			type = CustomerType.REGULAR;
-			items = 10 + (int)(Math.random() * 21); // 10-30 items
+			items = 11 + (int)(Math.random() * 21); // 11-30 items
 		}
 
 		// Initial location

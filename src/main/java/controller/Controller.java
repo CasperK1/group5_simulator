@@ -9,7 +9,6 @@ import simu.framework.IEngine;
 import simu.model.*;
 import view.ISimulatorUI;
 import view.Visualisation;
-//import view.StoreVisualization;
 //import simu.data.DatabaseManager;
 //import simu.data.SimulationConfig;
 
@@ -22,24 +21,15 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     private boolean paused = false;
 
     // FXML UI components
-    @FXML
-    private TextField simulationTimeField;
-    @FXML
-    private TextField delayField;
-	@FXML
-	private TextField configNameField;
-    @FXML
-    private Label resultsLabel;
-    @FXML
-    private Button startButton;
-    @FXML
-    private Button pauseButton;
-    @FXML
-    private Button resumeButton;
-    @FXML
-    private Button slowButton;
-    @FXML
-    private Button speedUpButton;
+    @FXML private TextField simulationTimeField;
+    @FXML private TextField delayField;
+	@FXML private TextField configNameField;
+    @FXML private Label resultsLabel;
+    @FXML private Button startButton;
+    @FXML private Button pauseButton;
+    @FXML private Button resumeButton;
+    @FXML private Button slowButton;
+    @FXML private Button speedUpButton;
 
     // Customer tracking for visualization
     private Map<Integer, Customer> activeCustomers;

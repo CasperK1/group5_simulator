@@ -32,12 +32,14 @@ public class ServicePoint {
 		return queue.poll();
 	}
 
-	public void beginService() {  		// Begins a new service, customer is on the queue during the service
+	public void beginService() {
+		if (queue.isEmpty()) {
+			return;
+		}
 		reserved = true;
 		double serviceTime = generator.sample();
 		eventList.add(new Event(eventTypeScheduled, Clock.getInstance().getTime()+serviceTime));
 	}
-
 	public boolean isReserved(){
 		return reserved;
 	}

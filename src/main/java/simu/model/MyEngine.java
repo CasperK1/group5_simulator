@@ -17,10 +17,12 @@ public class MyEngine extends Engine {
 		// Create service points for the store simulation
 		servicePoints = new ServicePoint[5];
 
+		arrivalProcess = new ArrivalProcess(new Negexp(5), eventList, EventType.ARR1);
+
 		// Entrance - quick processing
 		servicePoints[0] = new ServicePoint(new Negexp(1.0), eventList, EventType.DEP1);
 
-		// Shopping area - time depends on items
+		// Shopping area - TODO: time depends on items
 		servicePoints[1] = new ServicePoint(new Normal(15, 5), eventList, EventType.DEP2);
 
 		// Regular checkout
@@ -32,8 +34,6 @@ public class MyEngine extends Engine {
 		// Self-checkout
 		servicePoints[4] = new ServicePoint(new Normal(10, 4), eventList, EventType.DEP5);
 
-		// For simplicity, continue to use ArrivalProcess for customer generation
-		arrivalProcess = new ArrivalProcess(new Negexp(5), eventList, EventType.ARR1);
 	}
 
 	@Override
@@ -47,38 +47,35 @@ public class MyEngine extends Engine {
 
 		switch ((EventType)t.getType()) {
 			case ARR1:
-				// Create a new customer
 				customer = new Customer();
 
 				// Add to first service point (entrance)
 				servicePoints[0].addQueue(customer);
-
-				// Customer location is already set to ENTRANCE in constructor
-
-				// Add to active customers for tracking
 				controller.customerCreated(customer);
-
-				// Generate next arrival
 				arrivalProcess.generateNext();
 				break;
 
-			case DEP1:
-				// Customer moves from entrance to shopping area
+			case DEP1: // Customer moves from entrance to shopping area
 				customer = servicePoints[0].removeQueue();
 
 				// Update location and notify controller
-				customer.setCurrentLocation(ServicePointType.SHOPPING);
 				controller.customerMoved(customer.getId(), ServicePointType.ENTRANCE, ServicePointType.SHOPPING);
 
 				// Start shopping process
 				customer.startShopping();
 				servicePoints[1].addQueue(customer);
+				servicePoints[1].beginService(); // To queue customers into checkout service points. This works, no idea how❓❓
 				break;
 
-			case DEP2:
-				// Customer finishes shopping and moves to checkout
+			case DEP2: // Customer finishes shopping and moves to checkout
+
 				customer = servicePoints[1].removeQueue();
+				if (customer == null) { // Null check for beginService() above, otherwise crashes. Still no idea how this works ❓🤓
+					System.out.println("Warning: No customer found in shopping area queue");
+					break;
+				}
 				customer.endShopping();
+
 
 				// Determine which checkout to use based on customer type/items
 				ServicePointType checkoutType;
@@ -103,6 +100,7 @@ public class MyEngine extends Engine {
 				}
 
 				customer.startCheckout();
+
 				break;
 
 			case DEP3:
