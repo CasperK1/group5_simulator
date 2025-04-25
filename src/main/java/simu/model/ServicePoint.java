@@ -10,11 +10,10 @@ import simu.framework.EventList;
 // TODO:
 // Service Point functionalities & calculations (+ variables needed) and reporting to be implemented
 public class ServicePoint {
-	private LinkedList<Customer> queue = new LinkedList<Customer>(); // Data Structure used
+	private LinkedList<Customer> queue = new LinkedList<Customer>();
 	private ContinuousGenerator generator;
 	private EventList eventList;
 	private EventType eventTypeScheduled;
-	//Queuestrategy strategy; // option: ordering of the customer
 	private boolean reserved = false;
 
 	public ServicePoint(ContinuousGenerator generator, EventList eventList, EventType type){
