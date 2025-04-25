@@ -13,6 +13,8 @@ public class Customer {
 	private int id;
 	private CustomerType type;
 	private int items;
+	private ServicePointType currentLocation;
+	private ServicePointType previousLocation;
 
 	// Statistics tracking
 	private static int i = 1;
@@ -33,11 +35,33 @@ public class Customer {
 		arrivalTime = Clock.getInstance().getTime();
 		entranceTime = arrivalTime;
 
-		// Default to regular customer
-		type = CustomerType.REGULAR;
-		items = 15; // Default item count
+		// Randomly determine customer type (70% regular, 30% express)
+		if (Math.random() < 0.3) {
+			type = CustomerType.EXPRESS;
+			items = 1 + (int)(Math.random() * 10); // 1-10 items
+		} else {
+			type = CustomerType.REGULAR;
+			items = 10 + (int)(Math.random() * 21); // 10-30 items
+		}
 
-		Trace.out(Trace.Level.INFO, "New customer #" + id + " arrived at " + arrivalTime);
+		// Initial location
+		currentLocation = ServicePointType.ENTRANCE;
+
+		Trace.out(Trace.Level.INFO, "New customer #" + id + " (" + type + ") with " + items +
+				" items arrived at " + arrivalTime);
+	}
+
+	public ServicePointType getCurrentLocation() {
+		return currentLocation;
+	}
+
+	public void setCurrentLocation(ServicePointType location) {
+		this.previousLocation = this.currentLocation;
+		this.currentLocation = location;
+	}
+
+	public ServicePointType getPreviousLocation() {
+		return previousLocation;
 	}
 
 	/**

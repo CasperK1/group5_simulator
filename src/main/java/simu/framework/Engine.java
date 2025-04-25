@@ -3,20 +3,19 @@ package simu.framework;
 import controller.IControllerMtoV;
 import simu.model.ServicePoint;
 
-public abstract class Engine extends Thread implements IEngine {  // NEW DEFINITIONS
+public abstract class Engine extends Thread implements IEngine {
 	private double simulationTime = 0;	// time when the simulation will be stopped
 	private long delay = 0;
-	private Clock clock;				// in order to simplify the code (clock.getClock() instead Clock.getInstance().getClock())
+	private Clock clock;
 	
 	protected EventList eventList;
 	protected ServicePoint[] servicePoints;
-	protected IControllerMtoV controller; // NEW
+	protected IControllerMtoV controller;
 
-	public Engine(IControllerMtoV controller) {	// NEW
-		this.controller = controller;  			// NEW
+	public Engine(IControllerMtoV controller) {
+		this.controller = controller;
 		clock = Clock.getInstance();
 		eventList = new EventList();
-		/* Service Points are created in simu.model-package's class who is inheriting the Engine class */
 	}
 
 	@Override
@@ -24,12 +23,12 @@ public abstract class Engine extends Thread implements IEngine {  // NEW DEFINIT
 		simulationTime = time;
 	}
 	
-	@Override // NEW
+	@Override
 	public void setDelay(long time) {
 		this.delay = time;
 	}
 	
-	@Override // NEW
+	@Override
 	public long getDelay() {
 		return delay;
 	}
@@ -54,7 +53,7 @@ public abstract class Engine extends Thread implements IEngine {  // NEW DEFINIT
 		}
 	}
 
-	private void tryCEvents() {    // define protected, if you want to overwrite
+	private void tryCEvents() {
 		for (ServicePoint p: servicePoints){
 			if (!p.isReserved() && p.isOnQueue()){
 				p.beginService();
@@ -80,7 +79,7 @@ public abstract class Engine extends Thread implements IEngine {  // NEW DEFINIT
 		}
 	}
 
-	protected abstract void initialization(); 	// Defined in simu.model-package's class who is inheriting the Engine class
-	protected abstract void runEvent(Event t);	// Defined in simu.model-package's class who is inheriting the Engine class
-	protected abstract void results(); 			// Defined in simu.model-package's class who is inheriting the Engine class
+	protected abstract void initialization();
+	protected abstract void runEvent(Event t);
+	protected abstract void results();
 }

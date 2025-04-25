@@ -53,30 +53,63 @@ public class MyEngine extends Engine {
 				// Add to first service point (entrance)
 				servicePoints[0].addQueue(customer);
 
+				// Customer location is already set to ENTRANCE in constructor
+
+				// Add to active customers for tracking
+				controller.customerCreated(customer);
+
 				// Generate next arrival
 				arrivalProcess.generateNext();
-
-				// Notify controller to visualize the customer
-				controller.visualiseCustomer();
 				break;
 
 			case DEP1:
 				// Customer moves from entrance to shopping area
 				customer = servicePoints[0].removeQueue();
+
+				// Update location and notify controller
+				customer.setCurrentLocation(ServicePointType.SHOPPING);
+				controller.customerMoved(customer.getId(), ServicePointType.ENTRANCE, ServicePointType.SHOPPING);
+
+				// Start shopping process
+				customer.startShopping();
 				servicePoints[1].addQueue(customer);
 				break;
 
 			case DEP2:
-				// Customer finishes shopping and moves to a checkout
-				// For simplicity, we'll always use regular checkout for now
+				// Customer finishes shopping and moves to checkout
 				customer = servicePoints[1].removeQueue();
-				servicePoints[2].addQueue(customer);
+				customer.endShopping();
+
+				// Determine which checkout to use based on customer type/items
+				ServicePointType checkoutType;
+				if (customer.getType() == CustomerType.EXPRESS || customer.getItems() <= 10) {
+					checkoutType = ServicePointType.EXPRESS_CHECKOUT;
+					customer.setCurrentLocation(checkoutType);
+					controller.customerMoved(customer.getId(), ServicePointType.SHOPPING, checkoutType);
+					servicePoints[3].addQueue(customer);
+				} else {
+					// Regular checkout or self-checkout (random choice)
+					if (Math.random() > 0.7) { // 30% chance for self-checkout
+						checkoutType = ServicePointType.SELF_CHECKOUT;
+						customer.setCurrentLocation(checkoutType);
+						controller.customerMoved(customer.getId(), ServicePointType.SHOPPING, checkoutType);
+						servicePoints[4].addQueue(customer);
+					} else {
+						checkoutType = ServicePointType.REGULAR_CHECKOUT;
+						customer.setCurrentLocation(checkoutType);
+						controller.customerMoved(customer.getId(), ServicePointType.SHOPPING, checkoutType);
+						servicePoints[2].addQueue(customer);
+					}
+				}
+
+				customer.startCheckout();
 				break;
 
 			case DEP3:
 				// Customer leaves regular checkout
 				customer = servicePoints[2].removeQueue();
 				customer.setRemovalTime(Clock.getInstance().getTime());
+				controller.customerCompleted(customer.getId(), ServicePointType.REGULAR_CHECKOUT);
 				customer.reportResults();
 				break;
 
@@ -84,6 +117,7 @@ public class MyEngine extends Engine {
 				// Customer leaves express checkout
 				customer = servicePoints[3].removeQueue();
 				customer.setRemovalTime(Clock.getInstance().getTime());
+				controller.customerCompleted(customer.getId(), ServicePointType.EXPRESS_CHECKOUT);
 				customer.reportResults();
 				break;
 
@@ -91,6 +125,7 @@ public class MyEngine extends Engine {
 				// Customer leaves self-checkout
 				customer = servicePoints[4].removeQueue();
 				customer.setRemovalTime(Clock.getInstance().getTime());
+				controller.customerCompleted(customer.getId(), ServicePointType.SELF_CHECKOUT);
 				customer.reportResults();
 				break;
 		}

@@ -37,7 +37,6 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
 
 	@Override
 	public void start(Stage primaryStage) {
-		// UI creation
 		try {
 			primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 				@Override
@@ -65,10 +64,14 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
 			results = (Label) root.lookup("#resultsLabel");
 
 			// Set up visualization
+			StackPane visualizationContainer = (StackPane) root.lookup("#visualizationContainer");
 			Canvas canvas = (Canvas) root.lookup("#storeCanvas");
 			display = new Visualisation((int)canvas.getWidth(), (int)canvas.getHeight());
+			visualizationContainer.getChildren().clear();
+			visualizationContainer.getChildren().add((Canvas)display);
 
-			Scene scene = new Scene(root, 800, 600);
+			Scene scene = new Scene(root);
+			primaryStage.setResizable(false);
 			primaryStage.setScene(scene);
 			primaryStage.show();
 		} catch(Exception e) {
