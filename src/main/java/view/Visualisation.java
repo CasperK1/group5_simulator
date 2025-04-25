@@ -52,24 +52,18 @@ public class Visualisation extends Canvas implements IVisualisation {
 
     @Override
     public void clearDisplay() {
-        // Fill background
         gc.setFill(Color.WHITE);
         gc.fillRect(0, 0, this.getWidth(), this.getHeight());
 
-        // Draw service points
         drawServicePoints();
-
-        // Draw all customers
         drawCustomers();
     }
 
     private void drawServicePoints() {
-        // Draw each service point rectangle with appropriate colors and labels
         for (Map.Entry<ServicePointType, Rectangle2D> entry : servicePoints.entrySet()) {
             ServicePointType type = entry.getKey();
             Rectangle2D rect = entry.getValue();
 
-            // Choose color based on service point type
             switch (type) {
                 case ENTRANCE:
                     gc.setFill(Color.LIGHTBLUE);
@@ -90,19 +84,16 @@ public class Visualisation extends Canvas implements IVisualisation {
                     gc.setFill(Color.WHITE);
             }
 
-            // Draw filled rectangle
             gc.fillRect(rect.getMinX(), rect.getMinY(), rect.getWidth(), rect.getHeight());
-
-            // Draw border
             gc.setStroke(Color.BLACK);
             gc.strokeRect(rect.getMinX(), rect.getMinY(), rect.getWidth(), rect.getHeight());
 
-            // Add label
+            //label
             gc.setFill(Color.BLACK);
             gc.fillText(formatServicePointName(type),
                     rect.getMinX() + 10, rect.getMinY() + 20);
 
-            // Draw queue area if applicable (for checkout points)
+            // Draw queue area (for checkout points)
             if (type == ServicePointType.REGULAR_CHECKOUT ||
                     type == ServicePointType.EXPRESS_CHECKOUT ||
                     type == ServicePointType.SELF_CHECKOUT) {
@@ -117,45 +108,36 @@ public class Visualisation extends Canvas implements IVisualisation {
         double queueWidth = servicePoint.getWidth();
         double queueHeight = 25;
 
-        // Draw queue area with light color
         gc.setFill(Color.LIGHTYELLOW);
         gc.fillRect(queueX, queueY, queueWidth, queueHeight);
 
-        // Draw border
         gc.setStroke(Color.GRAY);
-        gc.setLineDashes(5, 5); // Dashed line
+        gc.setLineDashes(5, 5);
         gc.strokeRect(queueX, queueY, queueWidth, queueHeight);
-        gc.setLineDashes(0); // Reset to solid line
-
-        // Add queue label
+        gc.setLineDashes(0);
 
 		int queueSize = queueSizes.getOrDefault(type, 0);
 		gc.setFill(Color.BLACK);
 		gc.fillText("Queue size: " + queueSize, queueX + 5, queueY + 15);
     }
 
-	/**
-	 * Increases the queue size for a specific service point
-	 * @param type The service point type whose queue should be increased
-	 */
+
 	public void incrementQueueSize(ServicePointType type) {
 		int size = queueSizes.getOrDefault(type, 0);
 		size++;
 		queueSizes.put(type, size);
+        clearDisplay();
 	}
 
-	/**
-	 * Decreases the queue size for a specific service point
-	 * @param type The service point type whose queue should be decreased
-	 */
+
 	public void decrementQueueSize(ServicePointType type) {
 		int size = queueSizes.getOrDefault(type, 0);
-		if (size > 0) { // Prevent negative queue sizes
+		if (size > 0) {
 			size--;
 		}
 		queueSizes.put(type, size);
+        clearDisplay();
 	}
-
 
     private String formatServicePointName(ServicePointType type) {
         String name = type.toString();
@@ -179,7 +161,6 @@ public class Visualisation extends Canvas implements IVisualisation {
     }
 
     private void drawCustomer(CustomerVisual customer) {
-        // Draw customer circle
         gc.setFill(customer.getColor());
         gc.fillOval(customer.getX(), customer.getY(), 20, 20);
 
@@ -229,20 +210,20 @@ public class Visualisation extends Canvas implements IVisualisation {
         if (customer != null) {
             customer.setLocation(to);
             placeCustomerAtServicePoint(customer, to);
-            clearDisplay(); // Redraw everything
+            clearDisplay();
         }
     }
 
     public void removeCustomer(int customerId) {
         customers.remove(customerId);
-        clearDisplay(); // Redraw everything
+        clearDisplay();
     }
 
     public void updateCustomerItems(int customerId, int items) {
         CustomerVisual customer = customers.get(customerId);
         if (customer != null) {
             customer.setItems(items);
-            clearDisplay(); // Redraw everything
+            clearDisplay();
         }
     }
 
