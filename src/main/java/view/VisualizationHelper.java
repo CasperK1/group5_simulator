@@ -1,9 +1,12 @@
 package view;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
+import simu.model.CustomerVisual;
 import simu.model.ServicePointType;
 
 public class VisualizationHelper {
@@ -12,6 +15,9 @@ public class VisualizationHelper {
     public VisualizationHelper(GraphicsContext gc) {
         this.gc = gc;
     }
+
+//COLOR SET----------------------------------------------------------
+
     // Helper method to get appropriate colors for service point types
     public static Color getServicePointColor(ServicePointType type) {
         switch (type) {
@@ -41,6 +47,30 @@ public class VisualizationHelper {
         } else {
             return Color.rgb(255, 220, 220, 0.7); // Light red (long queue)
         }
+    }
+
+//ICON----------------------------------------------------------
+    // Draw icon for service point type
+    void drawServicePointIcon(ServicePointType type, double x, double y, double size) {
+        gc.save();
+        switch (type) {
+            case ENTRANCE:
+                drawEntranceIcon(x, y, size);
+                break;
+            case SHOPPING:
+                drawShoppingIcon(x, y, size);
+                break;
+            case REGULAR_CHECKOUT:
+                drawRegularCheckoutIcon(x, y, size);
+                break;
+            case EXPRESS_CHECKOUT:
+                drawExpressCheckoutIcon(x, y, size);
+                break;
+            case SELF_CHECKOUT:
+                drawSelfCheckoutIcon(x, y, size);
+                break;
+        }
+        gc.restore();
     }
 
     // Draw entrance icon (door)
@@ -127,6 +157,7 @@ public class VisualizationHelper {
         gc.fillRect(x + size * 0.5, y + size * 0.5, size * 0.1, size * 0.1);
     }
 
+
     // Draw small person icons to represent people in queue
     void drawQueuePersonsIndicator(double x, double y, int queueSize, ServicePointType type) {
         // Limit the display to avoid crowding
@@ -167,5 +198,57 @@ public class VisualizationHelper {
         gc.setFill(Color.BLACK);
         gc.setFont(Font.font("Arial", FontWeight.BOLD, 10));
         gc.fillText("MAX 10", x + 80, y);
+    }
+
+//CUSTOMER----------------------------------------------------------
+    void drawCustomer(CustomerVisual customer) {
+        // Constants for better readability and easier adjustments
+        final int IMAGE_SIZE = 40;
+        final int ID_BADGE_SIZE = 20;
+        final int ITEM_BADGE_SIZE = 16;
+        final int BADGE_OFFSET = 4;
+        final int TEXT_OFFSET_Y = 10;
+
+        double x = customer.getX();
+        double y = customer.getY();
+
+        // Draw customer image
+        Image customerImage = new Image("customer-4.png");
+        gc.drawImage(customerImage, x, y, IMAGE_SIZE, IMAGE_SIZE);
+
+        // Draw ID badge (circular background)
+        gc.setFill(Color.WHITE);
+        gc.fillOval(x - ID_BADGE_SIZE / 2, y - ID_BADGE_SIZE / 2, ID_BADGE_SIZE, ID_BADGE_SIZE);
+        gc.setStroke(Color.BLACK);
+        gc.strokeOval(x - ID_BADGE_SIZE / 2, y - ID_BADGE_SIZE / 2, ID_BADGE_SIZE, ID_BADGE_SIZE);
+
+        // Draw ID number in badge
+        gc.setFill(Color.BLACK);
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setFont(Font.font("Arial", FontWeight.BOLD, 10));
+        gc.fillText(Integer.toString(customer.getId()),
+                x, y + BADGE_OFFSET);
+
+        // Draw item count badge for customers with items
+        if (customer.getItems() > 0) {
+            // Position the items badge in the bottom right corner of the image
+            double itemBadgeX = x + IMAGE_SIZE - ITEM_BADGE_SIZE;
+            double itemBadgeY = y + IMAGE_SIZE - ITEM_BADGE_SIZE;
+
+            // Draw square background for item count (blue)
+            gc.setFill(Color.ROYALBLUE);
+            gc.fillRect(itemBadgeX, itemBadgeY, ITEM_BADGE_SIZE, ITEM_BADGE_SIZE);
+            gc.setStroke(Color.WHITE);
+            gc.strokeRect(itemBadgeX, itemBadgeY, ITEM_BADGE_SIZE, ITEM_BADGE_SIZE);
+
+            // Draw item count number (white text)
+            gc.setFill(Color.WHITE);
+            gc.fillText(Integer.toString(customer.getItems()),
+                    itemBadgeX + ITEM_BADGE_SIZE / 2,
+                    itemBadgeY + ITEM_BADGE_SIZE / 2 + BADGE_OFFSET);
+        }
+
+        // Reset text alignment for other drawing operations
+        gc.setTextAlign(TextAlignment.LEFT);
     }
 }

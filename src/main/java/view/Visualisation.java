@@ -9,6 +9,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import simu.model.CustomerType;
+import simu.model.CustomerVisual;
 import simu.model.ServicePointType;
 
 import java.util.HashMap;
@@ -17,10 +18,10 @@ import java.util.Map;
 // TODO: CUSTOMERS NOT MOVING TO CHECKOUT, REGULAR CUSTOMERS USING EXPRESS CHECKOUT
 public class Visualisation extends Canvas implements IVisualisation {
     private GraphicsContext gc;
+    private VisualizationHelper helper;
     private Map<ServicePointType, Rectangle2D> servicePoints;
     private Map<ServicePointType, Integer> queueSizes;
     private Map<Integer, CustomerVisual> customers;
-    private VisualizationHelper helper;
 
     public Visualisation(int w, int h) {
         super(w, h);
@@ -80,7 +81,7 @@ public class Visualisation extends Canvas implements IVisualisation {
             gc.fillRoundRect(rect.getMinX(), rect.getMinY(), rect.getWidth(), rect.getHeight(), CORNER_RADIUS, CORNER_RADIUS);
 
             // Draw appropriate icon based on service point type
-            drawServicePointIcon(type, rect.getMinX() + PADDING, rect.getMinY() + PADDING, ICON_SIZE);
+            helper.drawServicePointIcon(type, rect.getMinX() + PADDING, rect.getMinY() + PADDING, ICON_SIZE);
 
             // Label with better typography
             gc.setFont(TITLE_FONT);
@@ -96,29 +97,6 @@ public class Visualisation extends Canvas implements IVisualisation {
                 drawQueueArea(type, rect);
             }
         }
-    }
-
-    // Draw icon for service point type
-    private void drawServicePointIcon(ServicePointType type, double x, double y, double size) {
-        gc.save();
-        switch (type) {
-            case ENTRANCE:
-                helper.drawEntranceIcon(x, y, size);
-                break;
-            case SHOPPING:
-                helper.drawShoppingIcon(x, y, size);
-                break;
-            case REGULAR_CHECKOUT:
-                helper.drawRegularCheckoutIcon(x, y, size);
-                break;
-            case EXPRESS_CHECKOUT:
-                helper.drawExpressCheckoutIcon(x, y, size);
-                break;
-            case SELF_CHECKOUT:
-                helper.drawSelfCheckoutIcon(x, y, size);
-                break;
-        }
-        gc.restore();
     }
 
     // Get occupancy level
@@ -202,59 +180,8 @@ public class Visualisation extends Canvas implements IVisualisation {
 
     private void drawCustomers() {
         for (CustomerVisual customer : customers.values()) {
-            drawCustomer(customer);
+            helper.drawCustomer(customer);
         }
-    }
-
-    private void drawCustomer(CustomerVisual customer) {
-        // Constants for better readability and easier adjustments
-        final int IMAGE_SIZE = 40;
-        final int ID_BADGE_SIZE = 16;
-        final int ITEM_BADGE_SIZE = 16;
-        final int BADGE_OFFSET = 4;
-        final int TEXT_OFFSET_Y = 10;
-
-        double x = customer.getX();
-        double y = customer.getY();
-
-        // Draw customer image
-        Image customerImage = new Image("customer-4.png");
-        gc.drawImage(customerImage, x, y, IMAGE_SIZE, IMAGE_SIZE);
-
-        // Draw ID badge (circular background)
-        gc.setFill(Color.WHITE);
-        gc.fillOval(x - ID_BADGE_SIZE / 2, y - ID_BADGE_SIZE / 2, ID_BADGE_SIZE, ID_BADGE_SIZE);
-        gc.setStroke(Color.BLACK);
-        gc.strokeOval(x - ID_BADGE_SIZE / 2, y - ID_BADGE_SIZE / 2, ID_BADGE_SIZE, ID_BADGE_SIZE);
-
-        // Draw ID number in badge
-        gc.setFill(Color.BLACK);
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 10));
-        gc.fillText(Integer.toString(customer.getId()),
-                x, y + BADGE_OFFSET);
-
-        // Draw item count badge for customers with items
-        if (customer.getItems() > 0) {
-            // Position the items badge in the bottom right corner of the image
-            double itemBadgeX = x + IMAGE_SIZE - ITEM_BADGE_SIZE;
-            double itemBadgeY = y + IMAGE_SIZE - ITEM_BADGE_SIZE;
-
-            // Draw square background for item count (blue)
-            gc.setFill(Color.ROYALBLUE);
-            gc.fillRect(itemBadgeX, itemBadgeY, ITEM_BADGE_SIZE, ITEM_BADGE_SIZE);
-            gc.setStroke(Color.WHITE);
-            gc.strokeRect(itemBadgeX, itemBadgeY, ITEM_BADGE_SIZE, ITEM_BADGE_SIZE);
-
-            // Draw item count number (white text)
-            gc.setFill(Color.WHITE);
-            gc.fillText(Integer.toString(customer.getItems()),
-                    itemBadgeX + ITEM_BADGE_SIZE / 2,
-                    itemBadgeY + ITEM_BADGE_SIZE / 2 + BADGE_OFFSET);
-        }
-
-        // Reset text alignment for other drawing operations
-        gc.setTextAlign(TextAlignment.LEFT);
     }
 
     @Override
@@ -307,70 +234,5 @@ public class Visualisation extends Canvas implements IVisualisation {
     }
 
     // Customer visualization data
-    private class CustomerVisual {
-        private int id;
-        private CustomerType type;
-        private int items;
-        private double x, y;
-        private Color color;
-        private ServicePointType location;
 
-        public CustomerVisual(int id, CustomerType type, int items) {
-            this.id = id;
-            this.type = type;
-            this.items = items;
-
-            // Assign color based on customer type
-            if (type == CustomerType.EXPRESS) {
-                this.color = Color.rgb(255, 100, 100); // Red for express
-            } else {
-                this.color = Color.rgb(100, 100, 255); // Blue for regular
-            }
-        }
-
-        // Getters and setters
-        public int getId() {
-            return id;
-        }
-
-        public CustomerType getType() {
-            return type;
-        }
-
-        public int getItems() {
-            return items;
-        }
-
-        public void setItems(int items) {
-            this.items = items;
-        }
-
-        public double getX() {
-            return x;
-        }
-
-        public void setX(double x) {
-            this.x = x;
-        }
-
-        public double getY() {
-            return y;
-        }
-
-        public void setY(double y) {
-            this.y = y;
-        }
-
-        public Color getColor() {
-            return color;
-        }
-
-        public ServicePointType getLocation() {
-            return location;
-        }
-
-        public void setLocation(ServicePointType location) {
-            this.location = location;
-        }
-    }
 }
