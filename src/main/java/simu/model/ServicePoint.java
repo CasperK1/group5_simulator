@@ -16,11 +16,15 @@ public class ServicePoint {
 	private EventType eventTypeScheduled;
 	private boolean reserved = false;
 
+	private int customersServed = 0;
+	private double totalServiceTime = 0.0;
+	private double totalWaitingTime = 0.0;
+	private double lastServiceStartTime = 0.0;
+
 	public ServicePoint(ContinuousGenerator generator, EventList eventList, EventType type){
 		this.eventList = eventList;
 		this.generator = generator;
 		this.eventTypeScheduled = type;
-				
 	}
 
 	public void addQueue(Customer a){   // First customer at the queue is always on the service
@@ -29,7 +33,15 @@ public class ServicePoint {
 
 	public Customer removeQueue(){		// Remove serviced customer
 		reserved = false;
-		return queue.poll();
+		Customer servedCustomer = queue.poll();
+
+		if (servedCustomer != null) {
+			double serviceDuration = Clock.getInstance().getTime() - lastServiceStartTime;
+			totalServiceTime += serviceDuration;
+			customersServed++;
+		}
+
+		return servedCustomer;
 	}
 
 	public void beginService() {
@@ -37,7 +49,19 @@ public class ServicePoint {
 			return;
 		}
 		reserved = true;
-		double serviceTime = generator.sample();
+
+		Customer currentCustomer = queue.peek(); // Peek without removing
+		double serviceTime;
+
+		if (eventTypeScheduled == EventType.DEP2) { // Shopping service point
+			int items = currentCustomer.getItems();
+			double baseTime = 10.0;      // seconds to "enter" shopping
+			double timePerItem = 10.0;   // seconds per item
+			serviceTime = baseTime + timePerItem * items;
+			System.out.println("Shopping time: " + serviceTime + "Custom Id: " + currentCustomer.getId() + "Item: " + currentCustomer.getItems());
+		} else {
+			serviceTime = generator.sample();
+		}
 		eventList.add(new Event(eventTypeScheduled, Clock.getInstance().getTime()+serviceTime));
 	}
 	public boolean isReserved(){
@@ -47,4 +71,6 @@ public class ServicePoint {
 	public boolean isOnQueue(){
 		return queue.size() != 0;
 	}
+
+
 }
