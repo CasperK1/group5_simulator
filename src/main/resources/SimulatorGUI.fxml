@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.chart.LineChart?>
@@ -21,56 +22,51 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
-            prefWidth="800.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="controller.Controller">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.Controller">
     <top>
         <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="800.0" spacing="10.0" BorderPane.alignment="CENTER">
             <padding>
-                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
             </padding>
             <children>
                 <Label text="Simulation time:">
                     <font>
-                        <Font size="12.0"/>
+                        <Font size="12.0" />
                     </font>
                 </Label>
-                <TextField fx:id="simulationTimeField" prefWidth="80.0" text="1000"/>
+                <TextField fx:id="simulationTimeField" prefWidth="80.0" text="1000" />
                 <Label text="Delay (ms):">
                     <font>
-                        <Font size="12.0"/>
+                        <Font size="12.0" />
                     </font>
                 </Label>
-                <TextField fx:id="delayField" prefWidth="60.0" text="50"/>
+                <TextField fx:id="delayField" prefWidth="60.0" text="150" />
                 <Label text="Total time:">
                     <font>
-                        <Font size="12.0"/>
+                        <Font size="12.0" />
                     </font>
                 </Label>
                 <Label fx:id="resultsLabel" prefWidth="60.0" text="0.00">
                     <font>
-                        <Font size="12.0"/>
+                        <Font size="12.0" />
                     </font>
                 </Label>
-                <Button fx:id="startButton" mnemonicParsing="false" onAction="#startSimulation" text="Start"/>
-                <Button fx:id="pauseButton" disable="true" mnemonicParsing="false" onAction="#pauseSimulation"
-                        text="Pause"/>
-                <Button fx:id="resumeButton" disable="true" mnemonicParsing="false" onAction="#resumeSimulation"
-                        text="Resume"/>
-                <Button fx:id="slowButton" mnemonicParsing="false" onAction="#decreaseSpeed" text="Slow"/>
-                <Button fx:id="speedUpButton" mnemonicParsing="false" onAction="#increaseSpeed" text="Speed Up"/>
+                <Button fx:id="startButton" mnemonicParsing="false" onAction="#startSimulation" text="Start" />
+                <Button fx:id="pauseButton" disable="true" mnemonicParsing="false" onAction="#pauseSimulation" text="Pause" />
+                <Button fx:id="resumeButton" disable="true" mnemonicParsing="false" onAction="#resumeSimulation" text="Resume" />
+                <Button fx:id="slowButton" mnemonicParsing="false" onAction="#decreaseSpeed" text="Slow" />
+                <Button fx:id="speedUpButton" mnemonicParsing="false" onAction="#increaseSpeed" text="Speed Up" />
             </children>
         </HBox>
     </top>
     <center>
-        <TabPane fx:id="tabPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE"
-                 BorderPane.alignment="CENTER">
+        <TabPane fx:id="tabPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
             <tabs>
                 <Tab fx:id="visualizationTab" text="Visualization">
                     <content>
                         <StackPane fx:id="visualizationContainer" prefHeight="150.0" prefWidth="200.0">
                             <children>
-                                <Canvas fx:id="storeCanvas" height="500.0" width="750.0"/>
+                                <Canvas fx:id="storeCanvas" height="500.0" width="750.0" />
                             </children>
                         </StackPane>
                     </content>
@@ -81,108 +77,84 @@
                             <content>
                                 <VBox fx:id="statsBox" prefHeight="520.0" prefWidth="798.0" spacing="15.0">
                                     <padding>
-                                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
+                                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
                                     </padding>
                                     <children>
                                         <Label text="Simulation Statistics">
                                             <font>
-                                                <Font name="System Bold" size="14.0"/>
+                                                <Font name="System Bold" size="14.0" />
                                             </font>
                                         </Label>
                                         <LineChart fx:id="queueLengthChart" title="Queue Lengths Over Time">
                                             <xAxis>
-                                                <NumberAxis label="Time" side="BOTTOM"/>
+                                                <NumberAxis label="Time" side="BOTTOM" />
                                             </xAxis>
                                             <yAxis>
-                                                <NumberAxis label="Queue Length" side="LEFT"/>
+                                                <NumberAxis label="Queue Length" side="LEFT" />
                                             </yAxis>
                                         </LineChart>
                                         <GridPane fx:id="statsGrid" hgap="10.0" vgap="5.0">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <padding>
-                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                             </padding>
                                             <children>
-                                                <Label text="Total Customers:"/>
-                                                <Label fx:id="totalCustomersLabel" text="0" GridPane.columnIndex="1"/>
-                                                <Label text="Average Wait Time:" GridPane.rowIndex="1"/>
-                                                <Label fx:id="avgWaitTimeLabel" text="0.00" GridPane.columnIndex="1"
-                                                       GridPane.rowIndex="1"/>
-                                                <Label text="Maximum Queue Length:" GridPane.rowIndex="2"/>
-                                                <Label fx:id="maxQueueLabel" text="0" GridPane.columnIndex="1"
-                                                       GridPane.rowIndex="2"/>
+                                                <Label text="Total Customers:" />
+                                                <Label fx:id="totalCustomersLabel" text="0" GridPane.columnIndex="1" />
+                                                <Label text="Average Wait Time:" GridPane.rowIndex="1" />
+                                                <Label fx:id="avgWaitTimeLabel" text="0.00" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                <Label text="Maximum Queue Length:" GridPane.rowIndex="2" />
+                                                <Label fx:id="maxQueueLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                             </children>
                                         </GridPane>
-                                        <TitledPane animated="false" collapsible="true" expanded="false"
-                                                    text="Service Point Details">
+                                        <TitledPane animated="false" collapsible="true" expanded="false" text="Service Point Details">
                                             <content>
                                                 <GridPane fx:id="servicePointStatsGrid" hgap="10.0" vgap="10.0">
                                                     <columnConstraints>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
-                                                                           prefWidth="150.0"/>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
-                                                                           prefWidth="100.0"/>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
-                                                                           prefWidth="150.0"/>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
-                                                                           prefWidth="100.0"/>
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0" />
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0" />
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                                                     </columnConstraints>
                                                     <rowConstraints>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                                     </rowConstraints>
                                                     <padding>
-                                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                                     </padding>
                                                     <children>
-                                                        <Label text="Service Point"/>
-                                                        <Label text="Customers" GridPane.columnIndex="1"/>
-                                                        <Label text="Avg. Service Time" GridPane.columnIndex="2"/>
-                                                        <Label text="Utilization" GridPane.columnIndex="3"/>
-                                                        <Label text="Entrance" GridPane.rowIndex="1"/>
-                                                        <Label text="Shopping" GridPane.rowIndex="2"/>
-                                                        <Label text="Regular Checkout" GridPane.rowIndex="3"/>
-                                                        <Label text="Express Checkout" GridPane.rowIndex="4"/>
-                                                        <Label fx:id="entranceCustomersLabel" text="0"
-                                                               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                                                        <Label fx:id="shoppingCustomersLabel" text="0"
-                                                               GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-                                                        <Label fx:id="regularCustomersLabel" text="0"
-                                                               GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-                                                        <Label fx:id="expressCustomersLabel" text="0"
-                                                               GridPane.columnIndex="1" GridPane.rowIndex="4"/>
-                                                        <Label fx:id="entranceServiceTimeLabel" text="0.00"
-                                                               GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-                                                        <Label fx:id="shoppingServiceTimeLabel" text="0.00"
-                                                               GridPane.columnIndex="2" GridPane.rowIndex="2"/>
-                                                        <Label fx:id="regularServiceTimeLabel" text="0.00"
-                                                               GridPane.columnIndex="2" GridPane.rowIndex="3"/>
-                                                        <Label fx:id="expressServiceTimeLabel" text="0.00"
-                                                               GridPane.columnIndex="2" GridPane.rowIndex="4"/>
-                                                        <Label fx:id="entranceUtilizationLabel" text="0%"
-                                                               GridPane.columnIndex="3" GridPane.rowIndex="1"/>
-                                                        <Label fx:id="shoppingUtilizationLabel" text="0%"
-                                                               GridPane.columnIndex="3" GridPane.rowIndex="2"/>
-                                                        <Label fx:id="regularUtilizationLabel" text="0%"
-                                                               GridPane.columnIndex="3" GridPane.rowIndex="3"/>
-                                                        <Label fx:id="expressUtilizationLabel" text="0%"
-                                                               GridPane.columnIndex="3" GridPane.rowIndex="4"/>
+                                                        <Label text="Service Point" />
+                                                        <Label text="Customers" GridPane.columnIndex="1" />
+                                                        <Label text="Avg. Service Time" GridPane.columnIndex="2" />
+                                                        <Label text="Utilization" GridPane.columnIndex="3" />
+                                                        <Label text="Entrance" GridPane.rowIndex="1" />
+                                                        <Label text="Shopping" GridPane.rowIndex="2" />
+                                                        <Label text="Regular Checkout" GridPane.rowIndex="3" />
+                                                        <Label text="Express Checkout" GridPane.rowIndex="4" />
+                                                        <Label fx:id="entranceCustomersLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                        <Label fx:id="shoppingCustomersLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                        <Label fx:id="regularCustomersLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                                        <Label fx:id="expressCustomersLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                                        <Label fx:id="entranceServiceTimeLabel" text="0.00" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                                        <Label fx:id="shoppingServiceTimeLabel" text="0.00" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                                                        <Label fx:id="regularServiceTimeLabel" text="0.00" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                                                        <Label fx:id="expressServiceTimeLabel" text="0.00" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+                                                        <Label fx:id="entranceUtilizationLabel" text="0%" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                                                        <Label fx:id="shoppingUtilizationLabel" text="0%" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                                                        <Label fx:id="regularUtilizationLabel" text="0%" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+                                                        <Label fx:id="expressUtilizationLabel" text="0%" GridPane.columnIndex="3" GridPane.rowIndex="4" />
                                                     </children>
                                                 </GridPane>
                                             </content>
@@ -199,171 +171,123 @@
                             <content>
                                 <VBox prefHeight="520.0" prefWidth="805.0" spacing="15.0">
                                     <padding>
-                                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
+                                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
                                     </padding>
                                     <children>
                                         <Label text="Simulation Configuration">
                                             <font>
-                                                <Font name="System Bold" size="14.0"/>
+                                                <Font name="System Bold" size="14.0" />
                                             </font>
                                         </Label>
-                                        <TitledPane animated="false" collapsible="true" expanded="true"
-                                                    text="Simulation Parameters">
+                                        <TitledPane animated="false" collapsible="true" expanded="true" text="Simulation Parameters">
                                             <content>
                                                 <GridPane hgap="10.0" vgap="10.0">
                                                     <columnConstraints>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
-                                                                           prefWidth="200.0"/>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
-                                                                           prefWidth="200.0"/>
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
                                                     </columnConstraints>
                                                     <rowConstraints>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                                     </rowConstraints>
                                                     <padding>
-                                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                                     </padding>
                                                     <children>
-                                                        <Label text="Customer Arrival Distribution:"/>
-                                                        <ComboBox fx:id="arrivalDistributionCombo" prefWidth="150.0"
-                                                                  promptText="Negative Exponential"
-                                                                  GridPane.columnIndex="1"/>
-                                                        <Label text="Arrival Rate Parameter:" GridPane.rowIndex="1"/>
-                                                        <TextField fx:id="arrivalParamField" text="10"
-                                                                   GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                                        <Label text="Customer Arrival Distribution:" />
+                                                        <ComboBox fx:id="arrivalDistributionCombo" prefWidth="150.0" promptText="Negative Exponential" GridPane.columnIndex="1" />
+                                                        <Label text="Arrival Rate Parameter:" GridPane.rowIndex="1" />
+                                                        <TextField fx:id="arrivalParamField" text="10" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                                     </children>
                                                 </GridPane>
                                             </content>
                                         </TitledPane>
-                                        <TitledPane animated="false" collapsible="true" expanded="true"
-                                                    text="Customer Parameters">
+                                        <TitledPane animated="false" collapsible="true" expanded="true" text="Customer Parameters">
                                             <content>
                                                 <GridPane hgap="10.0" prefWidth="768.0" vgap="10.0">
                                                     <columnConstraints>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
-                                                                           prefWidth="200.0"/>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
-                                                                           prefWidth="200.0"/>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
-                                                                           prefWidth="100.0"/>
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                                                     </columnConstraints>
                                                     <rowConstraints>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                                     </rowConstraints>
                                                     <padding>
-                                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                                     </padding>
                                                     <children>
-                                                        <Label text="Express Customer Percentage:"/>
-                                                        <Slider fx:id="expressCustomerSlider" blockIncrement="10.0"
-                                                                majorTickUnit="25.0" max="100.0" minorTickCount="5"
-                                                                showTickLabels="true" showTickMarks="true" value="30.0"
-                                                                GridPane.columnIndex="1"/>
-                                                        <Label fx:id="expressPercentLabel" text="30%"
-                                                               GridPane.columnIndex="2"/>
-                                                        <Label text="Regular Customer Items:" GridPane.rowIndex="1"/>
-                                                        <HBox alignment="CENTER_LEFT" prefHeight="100.0"
-                                                              prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1"
-                                                              GridPane.rowIndex="1">
+                                                        <Label text="Express Customer Percentage:" />
+                                                        <Slider fx:id="expressCustomerSlider" blockIncrement="10.0" majorTickUnit="20.0" max="40.0" minorTickCount="5" showTickLabels="true" showTickMarks="true" value="20.0" GridPane.columnIndex="1" />
+                                                        <Label fx:id="expressPercentLabel" text="20%" GridPane.columnIndex="2" />
+                                                        <Label text="Regular Customer Items (11-50):" GridPane.rowIndex="1" />
+                                                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                                             <children>
-                                                                <Label text="Min:"/>
-                                                                <TextField fx:id="minRegularItems" prefWidth="50.0"
-                                                                           text="10"/>
-                                                                <Label text="Max:"/>
-                                                                <TextField fx:id="maxRegularItems" prefWidth="50.0"
-                                                                           text="30"/>
+                                                                <Label text="Min:" />
+                                                                <TextField fx:id="minRegularItems" prefWidth="50.0" text="11" />
+                                                                <Label text="Max:" />
+                                                                <TextField fx:id="maxRegularItems" prefWidth="50.0" text="50" />
                                                             </children>
                                                         </HBox>
-                                                        <Label text="Express Customer Items:" GridPane.rowIndex="2"/>
-                                                        <HBox alignment="CENTER_LEFT" prefHeight="100.0"
-                                                              prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1"
-                                                              GridPane.rowIndex="2">
+                                                        <Label text="Express Customer Items (1-10):" GridPane.rowIndex="2" />
+                                                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
                                                             <children>
-                                                                <Label text="Min:"/>
-                                                                <TextField fx:id="minExpressItems" prefWidth="50.0"
-                                                                           text="1"/>
-                                                                <Label text="Max:"/>
-                                                                <TextField fx:id="maxExpressItems" prefWidth="50.0"
-                                                                           text="10"/>
+                                                                <Label text="Min:" />
+                                                                <TextField fx:id="minExpressItems" prefWidth="50.0" text="1" />
+                                                                <Label text="Max:" />
+                                                                <TextField fx:id="maxExpressItems" prefWidth="50.0" text="10" />
                                                             </children>
                                                         </HBox>
                                                     </children>
                                                 </GridPane>
                                             </content>
                                         </TitledPane>
-                                        <TitledPane animated="false" collapsible="true" expanded="true"
-                                                    prefHeight="176.0" prefWidth="770.0"
-                                                    text="Service Points Parameters">
+                                        <TitledPane animated="false" collapsible="true" expanded="true" prefHeight="176.0" prefWidth="770.0" text="Service Points Parameters">
                                             <content>
                                                 <GridPane hgap="10.0" vgap="10.0">
                                                     <columnConstraints>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
-                                                                           prefWidth="200.0"/>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
-                                                                           prefWidth="200.0"/>
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
                                                     </columnConstraints>
                                                     <rowConstraints>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" prefHeight="30.0"
-                                                                        vgrow="SOMETIMES"/>
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                                     </rowConstraints>
                                                     <padding>
-                                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                                     </padding>
                                                     <children>
-                                                        <Label text="Service Time Distribution:"/>
-                                                        <ComboBox fx:id="serviceDistributionCombo" prefWidth="150.0"
-                                                                  promptText="Normal" GridPane.columnIndex="1"/>
-                                                        <Label text="Service Time Parameter:" GridPane.rowIndex="1"/>
-                                                        <TextField fx:id="serviceParamField" text="8"
-                                                                   GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                                                        <Label text="Shopping Time Multiplier:" GridPane.rowIndex="2"/>
-                                                        <TextField fx:id="shoppingMultiplier" text="1.5"
-                                                                   GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-                                                        <Label text="Regular Checkout Multiplier:"
-                                                               GridPane.rowIndex="3"/>
-                                                        <TextField fx:id="regularMultiplier" text="1.0"
-                                                                   GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-                                                        <Label text="Express Checkout Multiplier:"
-                                                               GridPane.rowIndex="4"/>
-                                                        <TextField fx:id="expressMultiplier" text="0.7"
-                                                                   GridPane.columnIndex="1" GridPane.rowIndex="4"/>
-                                                        <Label text="Self Checkout Multiplier:" GridPane.rowIndex="5"/>
-                                                        <TextField fx:id="selfCheckoutMultiplier" text="1.2"
-                                                                   GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+                                                        <Label text="Service Time Distribution:" />
+                                                        <ComboBox fx:id="serviceDistributionCombo" prefWidth="150.0" promptText="Normal" GridPane.columnIndex="1" />
+                                                        <Label text="Service Time Parameter:" GridPane.rowIndex="1" />
+                                                        <TextField fx:id="serviceParamField" text="8" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                        <Label text="Shopping Time Multiplier:" GridPane.rowIndex="2" />
+                                                        <TextField fx:id="shoppingMultiplier" text="1.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                        <Label text="Regular Checkout Multiplier:" GridPane.rowIndex="3" />
+                                                        <TextField fx:id="regularMultiplier" text="1.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                                        <Label text="Express Checkout Multiplier:" GridPane.rowIndex="4" />
+                                                        <TextField fx:id="expressMultiplier" text="0.7" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                                        <Label text="Self Checkout Multiplier:" GridPane.rowIndex="5" />
+                                                        <TextField fx:id="selfCheckoutMultiplier" text="1.2" GridPane.columnIndex="1" GridPane.rowIndex="5" />
                                                     </children>
                                                 </GridPane>
                                             </content>
                                         </TitledPane>
-                                        <HBox alignment="CENTER_LEFT" prefHeight="34.0" prefWidth="770.0"
-                                              spacing="10.0">
+                                        <HBox alignment="CENTER_LEFT" prefHeight="34.0" prefWidth="770.0" spacing="10.0">
                                             <padding>
-                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                             </padding>
                                             <children>
-                                                <Label text="Configuration Name:"/>
-                                                <TextField fx:id="configNameField" prefWidth="200.0"/>
-                                                <Button fx:id="saveConfigButton" mnemonicParsing="false"
-                                                        onAction="#saveConfiguration" text="Save Configuration"/>
-                                                <Button fx:id="loadConfigButton" mnemonicParsing="false"
-                                                        onAction="#loadConfiguration" text="Load Configuration"/>
+                                                <Label text="Configuration Name:" />
+                                                <TextField fx:id="configNameField" prefWidth="200.0" />
+                                                <Button fx:id="saveConfigButton" mnemonicParsing="false" onAction="#saveConfiguration" text="Save Configuration" />
+                                                <Button fx:id="loadConfigButton" mnemonicParsing="false" onAction="#loadConfiguration" text="Load Configuration" />
                                             </children>
                                         </HBox>
                                     </children>

@@ -4,10 +4,11 @@ import controller.IControllerMtoV;
 import simu.model.ServicePoint;
 
 public abstract class Engine extends Thread implements IEngine {
-	private double simulationTime = 0;	// time when the simulation will be stopped
+	private double simulationTime = 0;
 	private long delay = 0;
 	private Clock clock;
-	
+	private boolean paused = false;
+
 	protected EventList eventList;
 	protected ServicePoint[] servicePoints;
 	protected IControllerMtoV controller;
@@ -22,23 +23,40 @@ public abstract class Engine extends Thread implements IEngine {
 	public void setSimulationTime(double time) {
 		simulationTime = time;
 	}
-	
+
 	@Override
 	public void setDelay(long time) {
 		this.delay = time;
 	}
-	
+
 	@Override
 	public long getDelay() {
 		return delay;
 	}
-	
+
+	@Override
+	public void setPaused(boolean paused) {
+		this.paused = paused;
+	}
+
+	@Override
+	public boolean isPaused() {
+		return paused;
+	}
+
 	@Override
 	public void run() {
-		initialization(); // creating, e.g., the first event
-
+		initialization();
 		while (simulate()){
-			delay(); // NEW
+			while (paused) {
+				try {
+					sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
+			delay();
 			clock.setTime(currentTime());
 			runBEvents();
 			tryCEvents();
@@ -46,7 +64,7 @@ public abstract class Engine extends Thread implements IEngine {
 
 		results();
 	}
-	
+
 	private void runBEvents() {
 		while (eventList.getNextTime() == clock.getTime()){
 			runEvent(eventList.remove());
@@ -64,13 +82,13 @@ public abstract class Engine extends Thread implements IEngine {
 	private double currentTime(){
 		return eventList.getNextTime();
 	}
-	
+
 	private boolean simulate() {
 		Trace.out(Trace.Level.INFO, "Time is: " + clock.getTime());
 		return clock.getTime() < simulationTime;
 	}
 
-	private void delay() { // NEW
+	private void delay() {
 		Trace.out(Trace.Level.INFO, "Delay " + delay);
 		try {
 			sleep(delay);

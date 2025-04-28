@@ -56,7 +56,7 @@ public class ServicePoint {
 		if (eventTypeScheduled == EventType.DEP2) { // Shopping service point
 			int items = currentCustomer.getItems();
 			double baseTime = 10.0;      // seconds to "enter" shopping
-			double timePerItem = 10.0;   // seconds per item
+			double timePerItem = 2.0;   // seconds per item - LOWERED THIS TO PREVENT LAG
 			serviceTime = baseTime + timePerItem * items;
 			System.out.println("Shopping time: " + serviceTime + "Custom Id: " + currentCustomer.getId() + "Item: " + currentCustomer.getItems());
 		} else {
