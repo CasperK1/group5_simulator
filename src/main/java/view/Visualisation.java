@@ -232,7 +232,4 @@ public class Visualisation extends Canvas implements IVisualisation {
             clearDisplay();
         }
     }
-
-    // Customer visualization data
-
 }

@@ -1,7 +1,10 @@
 package simu.model;
 
+import simu.data.SimulationConfig;
 import simu.framework.Clock;
 import simu.framework.Trace;
+
+import java.io.ObjectInputFilter;
 
 /**
  * Represents a customer in the store simulation.
@@ -15,6 +18,7 @@ public class Customer {
 	private int items;
 	private ServicePointType currentLocation;
 	private ServicePointType previousLocation;
+	private SimulationConfig config;
 
 	// Statistics tracking
 	private static int i = 1;
@@ -30,18 +34,21 @@ public class Customer {
 	/**
 	 * Creates a new customer with a unique ID and records arrival time.
 	 */
-	public Customer() {
+	public Customer(SimulationConfig cfg) {
 		id = i++;
 		arrivalTime = Clock.getInstance().getTime();
 		entranceTime = arrivalTime;
+		config = cfg;
 
-		// Randomly determine customer type (70% regular, 30% express)
-		if (Math.random() < 0.3) {
-			type = CustomerType.EXPRESS;
-			items = 1 + (int)(Math.random() * 10); // 1-10 items
+		boolean isExpress = Math.random() * 100 < config.getExpressCustomerPercentage();
+		type = isExpress ? CustomerType.EXPRESS : CustomerType.REGULAR;
+
+		if (type == CustomerType.EXPRESS) {
+			items = config.getMinExpressItems() +
+					(int) (Math.random() * (config.getMaxExpressItems() - config.getMinExpressItems() + 1));
 		} else {
-			type = CustomerType.REGULAR;
-			items = 11 + (int)(Math.random() * 21); // 11-30 items
+			items = config.getMinRegularItems() +
+					(int) (Math.random() * (config.getMaxRegularItems() - config.getMinRegularItems() + 1));
 		}
 
 		// Initial location
