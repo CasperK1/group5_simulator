@@ -2,12 +2,15 @@ package controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import simu.data.SimulationConfig;
+import simu.framework.Clock;
 import simu.framework.IEngine;
 import simu.model.*;
 import view.ISimulatorUI;
 import view.Visualisation;
-import simu.data.SimulationConfig;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +31,26 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML private Button slowButton;
     @FXML private Button speedUpButton;
 
+    // Statistics UI
+    @FXML private Label totalCustomersLabel;
+    @FXML private Label avgWaitTimeLabel;
+    @FXML private Label maxQueueLabel;
+
+    @FXML private Label entranceCustomersLabel;
+    @FXML private Label shoppingCustomersLabel;
+    @FXML private Label regularCustomersLabel;
+    @FXML private Label expressCustomersLabel;
+
+    @FXML private Label entranceServiceTimeLabel;
+    @FXML private Label shoppingServiceTimeLabel;
+    @FXML private Label regularServiceTimeLabel;
+    @FXML private Label expressServiceTimeLabel;
+
+    @FXML private Label entranceUtilizationLabel;
+    @FXML private Label shoppingUtilizationLabel;
+    @FXML private Label regularUtilizationLabel;
+    @FXML private Label expressUtilizationLabel;
+
     // Configuration tab fields
     @FXML private ComboBox<String> arrivalDistributionCombo;
     @FXML private TextField arrivalParamField;
@@ -45,78 +68,73 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML private TextField selfCheckoutMultiplier;
     @FXML private TextField configNameField;
 
-    // Customer tracking for visualization
+    // Line Chart
+    @FXML private LineChart<Number, Number> queueLengthChart;
+    private XYChart.Series<Number, Number> queueLengthSeries = new XYChart.Series<>();
+
+    // Customer tracking
     private Map<Integer, Customer> activeCustomers = new ConcurrentHashMap<>();
     private Map<ServicePointType, Integer> queueSizes = new ConcurrentHashMap<>();
+    private Map<ServicePointType, Integer> servicePointCustomerCount = new ConcurrentHashMap<>();
+    private Map<ServicePointType, Double> servicePointTotalTime = new ConcurrentHashMap<>();
+    private int maxQueueLength = 0;
 
     @FXML
     public void initialize() {
-        // Initialize queue sizes
+        // Init queue sizes
         for (ServicePointType type : ServicePointType.values()) {
             queueSizes.put(type, 0);
+            servicePointCustomerCount.put(type, 0);
+            servicePointTotalTime.put(type, 0.0);
         }
+        if (!queueLengthChart.getData().contains(queueLengthSeries)) {
+            queueLengthChart.getData().add(queueLengthSeries);
+        }
+        queueLengthSeries.setName("Queue Length");
+
         initializeConfigControls();
     }
 
     private void initializeConfigControls() {
-        // Set up distribution options
         arrivalDistributionCombo.getItems().addAll("Negexp", "Normal", "Uniform");
         serviceDistributionCombo.getItems().addAll("Normal", "Negexp", "Uniform");
 
-        // Set default values
         arrivalDistributionCombo.setValue(config.getArrivalDistribution());
         serviceDistributionCombo.setValue(config.getServiceDistribution());
 
-
-        // Arrival distribution change listener
         arrivalDistributionCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                config.setArrivalDistribution(newVal);
-            }
+            if (newVal != null) config.setArrivalDistribution(newVal);
         });
 
-        // Arrival parameter change listener
-        arrivalParamField.textProperty().addListener((obs, oldVal, newVal) -> {
-            try {
-                double value = Double.parseDouble(newVal);
-                if (value > 0) {
-                    config.setArrivalParam(value);
-                }
-            } catch (NumberFormatException e) {
-                // Revert to old value if invalid
-                arrivalParamField.setText(oldVal);
-            }
+        serviceDistributionCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) config.setServiceDistribution(newVal);
         });
 
-        // Express customer percentage slider
         expressCustomerSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             double percentage = newVal.doubleValue();
             expressPercentLabel.setText(String.format("%.0f%%", percentage));
             config.setExpressCustomerPercentage(percentage);
         });
 
-        // Service distribution change listener
-        serviceDistributionCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                config.setServiceDistribution(newVal);
-            }
+        arrivalParamField.textProperty().addListener((obs, oldVal, newVal) -> {
+            try {
+                config.setArrivalParam(Double.parseDouble(newVal));
+            } catch (NumberFormatException ignored) {}
         });
 
-        // Customer items fields
-        IntegerFieldController.setupPairedFields(
-                minRegularItems, maxRegularItems,
-                11, 50,
-                config::setMinRegularItems, config::setMaxRegularItems
-        );
+        serviceParamField.textProperty().addListener((obs, oldVal, newVal) -> {
+            try {
+                config.setServiceParam(Double.parseDouble(newVal));
+            } catch (NumberFormatException ignored) {}
+        });
 
-        IntegerFieldController.setupPairedFields(
-                minExpressItems, maxExpressItems,
-                1, 10,
-                config::setMinExpressItems, config::setMaxExpressItems
-        );
+        // Integer and Double field helpers
+        IntegerFieldController.setupPairedFields(minRegularItems, maxRegularItems, 11, 50,
+                config::setMinRegularItems, config::setMaxRegularItems);
 
-        // Service parameter fields
-        DoubleFieldController.setupField(serviceParamField, 0.1, 100, config::setServiceParam);
+        IntegerFieldController.setupPairedFields(minExpressItems, maxExpressItems, 1, 10,
+                config::setMinExpressItems, config::setMaxExpressItems);
+
         DoubleFieldController.setupField(shoppingMultiplier, 0.1, 10, config::setShoppingMultiplier);
         DoubleFieldController.setupField(regularMultiplier, 0.1, 10, config::setRegularMultiplier);
         DoubleFieldController.setupField(expressMultiplier, 0.1, 10, config::setExpressMultiplier);
@@ -130,7 +148,17 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     /* Engine control methods */
     @FXML
     public void startSimulation() {
-        // Create engine with the current configuration
+        Customer.resetStatistics();
+        activeCustomers.clear();
+        queueLengthSeries.getData().clear();
+        maxQueueLength = 0;
+
+        for (ServicePointType type : ServicePointType.values()) {
+            queueSizes.put(type, 0);
+            servicePointCustomerCount.put(type, 0);
+            servicePointTotalTime.put(type, 0.0);
+        }
+
         engine = new MyEngine(this, config);
 
         double simTime = Double.parseDouble(simulationTimeField.getText());
@@ -143,17 +171,12 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
             ui.getVisualisation().clearDisplay();
         }
 
-        activeCustomers.clear();
-        for (ServicePointType type : ServicePointType.values()) {
-            queueSizes.put(type, 0);
-        }
+        paused = false;
 
-        // Update button states
         startButton.setDisable(true);
         pauseButton.setDisable(false);
         resumeButton.setDisable(true);
 
-        // Start the engine
         ((Thread) engine).start();
     }
 
@@ -161,10 +184,7 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     public void pauseSimulation() {
         if (engine != null && !paused) {
             paused = true;
-            long originalDelay = engine.getDelay();
             engine.setPaused(true);
-
-            // Update button states
             pauseButton.setDisable(true);
             resumeButton.setDisable(false);
         }
@@ -175,8 +195,6 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         if (engine != null && paused) {
             paused = false;
             engine.setPaused(false);
-
-            // Update button states
             resumeButton.setDisable(true);
             pauseButton.setDisable(false);
         }
@@ -185,7 +203,7 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML
     public void decreaseSpeed() {
         if (engine != null && !paused) {
-            engine.setDelay((long) (engine.getDelay() * 1.10));
+            engine.setDelay((long) (engine.getDelay() * 1.1));
         }
     }
 
@@ -199,23 +217,17 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     /* Configuration methods */
     @FXML
     public void saveConfiguration() {
-        // For now, just show an alert that config is saved (without DB)
         String name = configNameField.getText();
         if (name == null || name.trim().isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Warning",
-                    "Please enter a configuration name.");
+            showAlert(Alert.AlertType.WARNING, "Warning", "Please enter a configuration name.");
             return;
         }
-
-        showAlert(Alert.AlertType.INFORMATION, "Configuration Saved",
-                "Configuration '" + name + "' has been saved.");
+        showAlert(Alert.AlertType.INFORMATION, "Configuration Saved", "Configuration '" + name + "' has been saved.");
     }
 
     @FXML
     public void loadConfiguration() {
-        // placeholder message
-        showAlert(Alert.AlertType.INFORMATION, "Load Configuration",
-                "This feature will be implemented");
+        showAlert(Alert.AlertType.INFORMATION, "Load Configuration", "This feature will be implemented.");
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
@@ -226,34 +238,23 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         alert.showAndWait();
     }
 
-    // Method to get current configuration
     public SimulationConfig getConfig() {
         return config;
     }
 
-    /* Visualization methods from the engine */
+    /* Engine Callbacks */
     @Override
     public void showEndTime(double time) {
-        Platform.runLater(() -> {
-            resultsLabel.setText(String.format("%.2f", time));
-        });
+        Platform.runLater(() -> resultsLabel.setText(String.format("%.2f", time)));
     }
 
     @Override
     public void customerCreated(Customer customer) {
-        // Add to tracking
         activeCustomers.put(customer.getId(), customer);
-        System.out.println("Controller tracking customer #" + customer.getId());
 
-        // Update visualization
         Platform.runLater(() -> {
             if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
-                vis.addNewCustomer(
-                        customer.getId(),
-                        customer.getType(),
-                        customer.getItems(),
-                        customer.getCurrentLocation()
-                );
+                vis.addNewCustomer(customer.getId(), customer.getType(), customer.getItems(), customer.getCurrentLocation());
             }
         });
     }
@@ -263,23 +264,68 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         Platform.runLater(() -> {
             if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
                 vis.moveCustomer(customerId, from, to);
-                if (queueSizes.containsKey(to)) {
-                    vis.incrementQueueSize(to);
+            }
+
+            if (queueSizes.containsKey(to)) {
+                int newSize = queueSizes.get(to) + 1;
+                queueSizes.put(to, newSize);
+                if (newSize > maxQueueLength) {
+                    maxQueueLength = newSize;
                 }
             }
+
+            double currentTime = Clock.getInstance().getTime();
+            queueLengthSeries.getData().add(new XYChart.Data<>(currentTime, getTotalQueueSize()));
         });
     }
 
     @Override
     public void customerCompleted(int customerId, ServicePointType type) {
-        // Update visualization
+        Customer customer = activeCustomers.remove(customerId);
+        if (customer != null) {
+            customer.setRemovalTime(Clock.getInstance().getTime());
+            customer.reportResults();
+
+            servicePointCustomerCount.merge(type, 1, Integer::sum);
+            servicePointTotalTime.merge(type, customer.getTotalTime(), Double::sum);
+
+            updateStatistics();
+        }
+
         Platform.runLater(() -> {
             if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
                 vis.removeCustomer(customerId);
-                if (queueSizes.containsKey(type)) {
-                    vis.decrementQueueSize(type);
-                }
+            }
+            queueSizes.put(type, Math.max(0, queueSizes.getOrDefault(type, 0) - 1));
+        });
+    }
+
+    private int getTotalQueueSize() {
+        return queueSizes.values().stream().mapToInt(Integer::intValue).sum();
+    }
+
+    private void updateStatistics() {
+        Platform.runLater(() -> {
+            totalCustomersLabel.setText(String.valueOf(Customer.getTotalCompletedCustomers()));
+            avgWaitTimeLabel.setText(String.format("%.2f", Customer.getMeanServiceTime()));
+            maxQueueLabel.setText(String.valueOf(maxQueueLength));
+
+            double currentTime = Clock.getInstance().getTime();
+            if (currentTime > 0) {
+                updateServicePointStats(ServicePointType.ENTRANCE, entranceCustomersLabel, entranceServiceTimeLabel, entranceUtilizationLabel, currentTime);
+                updateServicePointStats(ServicePointType.SHOPPING, shoppingCustomersLabel, shoppingServiceTimeLabel, shoppingUtilizationLabel, currentTime);
+                updateServicePointStats(ServicePointType.REGULAR_CHECKOUT, regularCustomersLabel, regularServiceTimeLabel, regularUtilizationLabel, currentTime);
+                updateServicePointStats(ServicePointType.EXPRESS_CHECKOUT, expressCustomersLabel, expressServiceTimeLabel, expressUtilizationLabel, currentTime);
             }
         });
+    }
+
+    private void updateServicePointStats(ServicePointType type, Label customers, Label avgService, Label utilization, double currentTime) {
+        int count = servicePointCustomerCount.getOrDefault(type, 0);
+        double totalService = servicePointTotalTime.getOrDefault(type, 0.0);
+
+        customers.setText(String.valueOf(count));
+        avgService.setText(count > 0 ? String.format("%.2f", totalService / count) : "0.00");
+        utilization.setText(currentTime > 0 ? String.format("%.0f%%", (totalService / currentTime) * 100) : "0%");
     }
 }
