@@ -2,19 +2,22 @@ package controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.*;
 
 import simu.framework.Clock;
 import simu.framework.IEngine;
 import simu.model.*;
+import simu.data.SimulationConfig;
 
 import view.ISimulatorUI;
 import view.SimulatorGUI;
 import view.Visualisation;
-import simu.data.SimulationConfig;
 
+
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -61,6 +64,8 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML private Label regularUtilizationLabel;
     @FXML private Label expressUtilizationLabel;
 
+    @FXML private LineChart<Number, Number> queueLengthChart;
+
     // Configuration tab fields
     @FXML private ComboBox<String> arrivalDistributionCombo;
     @FXML private TextField arrivalParamField;
@@ -85,8 +90,11 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     // Customer tracking
     private Map<Integer, Customer> activeCustomers = new ConcurrentHashMap<>();
     private Map<ServicePointType, Integer> queueSizes = new ConcurrentHashMap<>();
-    private Map<ServicePointType, Integer> servicePointCustomerCount = new ConcurrentHashMap<>();
-    private Map<ServicePointType, Double> servicePointTotalTime = new ConcurrentHashMap<>();
+    private Map<ServicePointType, Integer> servicePointCustomerCount = new HashMap<>();
+    private Map<ServicePointType, Double> servicePointServiceTime = new HashMap<>();
+
+    private XYChart.Series<Number, Number> queueLengthSeries;
+
     private int maxQueueLength = 0;
 
     /**
@@ -99,7 +107,7 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         for (ServicePointType type : ServicePointType.values()) {
             queueSizes.put(type, 0);
             servicePointCustomerCount.put(type, 0);
-            servicePointTotalTime.put(type, 0.0);
+            servicePointServiceTime.put(type, 0.0);
         }
         if (!queueLengthChart.getData().contains(queueLengthSeries)) {
             queueLengthChart.getData().add(queueLengthSeries);
