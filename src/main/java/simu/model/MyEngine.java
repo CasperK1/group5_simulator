@@ -16,6 +16,7 @@ public class MyEngine extends Engine {
     private final ArrivalProcess arrivalProcess;
     private final SimulationConfig config;
 
+    private volatile boolean paused = false;
     /**
      * Creates a new simulation engine with the specified controller and configuration.
      *
@@ -126,6 +127,16 @@ public class MyEngine extends Engine {
      */
     @Override
     protected void runEvent(Event t) {
+        synchronized (this) {
+            while (paused) {
+                try {
+                    wait(); // Wait until the engine is resumed
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt(); // Good practice to handle interruptions
+                    return;
+                }
+            }
+        }
         Customer customer;
 
         switch ((EventType) t.getType()) {
@@ -220,4 +231,16 @@ public class MyEngine extends Engine {
     protected void results() {
         controller.showEndTime(Clock.getInstance().getTime());
     }
+
+
+    public void setPaused(boolean paused) {
+        synchronized (this) {
+            this.paused = paused;
+            if (!paused) {
+                notify(); // Resume simulation when it's unpaused
+            }
+        }
+    }
+
+
 }
