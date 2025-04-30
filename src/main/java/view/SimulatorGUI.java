@@ -4,11 +4,8 @@ import java.text.DecimalFormat;
 import controller.*;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import simu.framework.Trace;
@@ -17,7 +14,6 @@ import javafx.scene.*;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.*;
 
 public class SimulatorGUI extends Application implements ISimulatorUI {
 	// Controller object (UI needs)
@@ -38,13 +34,10 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-				@Override
-				public void handle(WindowEvent t) {
-					Platform.exit();
-					System.exit(0);
-				}
-			});
+			primaryStage.setOnCloseRequest(t -> {
+                Platform.exit();
+                System.exit(0);
+            });
 
 			primaryStage.setTitle("Simulator");
 
