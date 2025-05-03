@@ -12,7 +12,7 @@ public class Trace {
 	 * ERR: Error messages
 	 */
 	public enum Level { INFO, WAR, ERR }
-	private static Level traceLevel;
+	private static Level traceLevel = Level.INFO;
 
 	/**
 	 * Sets the minimum trace level for logging.
