@@ -8,6 +8,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import simu.data.SimulationConfig;
 import simu.framework.Trace;
 import simu.framework.Trace.Level;
 import javafx.scene.*;
@@ -54,6 +55,8 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
 
 			time = (TextField) root.lookup("#simulationTimeField");
 			delay = (TextField) root.lookup("#delayField");
+			SimulationConfig config = controller.getConfig();
+			delay.setText(String.valueOf(config.getDefaultDelay()));
 			results = (Label) root.lookup("#resultsLabel");
 
 			// Set up visualization
@@ -64,6 +67,9 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
 			visualizationContainer.getChildren().add((Canvas)display);
 
 			Scene scene = new Scene(root);
+
+			scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+			primaryStage.setScene(scene);
 			primaryStage.setResizable(false);
 			primaryStage.setScene(scene);
 			primaryStage.show();

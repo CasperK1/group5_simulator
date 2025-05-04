@@ -250,7 +250,32 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
 
     @FXML
     public void resetSimulation() {
+        if (engine != null) {
+            engine.reset(); // call reset on engine and everything inside (event list, clock, etc.)
+        }
 
+        activeCustomers.clear(); // clear customer tracking
+        Customer.resetStatistics();
+        // Reset queue sizes
+        for (ServicePointType type : ServicePointType.values()) {
+            queueSizes.put(type, 0);
+        }
+
+        // Reset GUI
+        if (ui != null) {
+            ui.getVisualisation().resetDisplay();
+        }
+
+        resultsLabel.setText("0.00");
+        delayField.setText(String.valueOf(config.getDefaultDelay()));
+        simulationTimeField.setText(String.valueOf(config.getDefaultSimulationTime()));
+
+        // Reset buttons
+        startButton.setDisable(false);
+        pauseButton.setDisable(true);
+        resumeButton.setDisable(true);
+
+        paused = false;
     }
 
 
@@ -377,4 +402,5 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
             }
         });
     }
+
 }

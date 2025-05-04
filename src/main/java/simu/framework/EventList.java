@@ -43,4 +43,11 @@ public class EventList {
 	public double getNextTime(){
 		return lista.peek().getTime();
 	}
+
+	/**
+	 * Clears all scheduled events from the list.
+	 */
+	public void clear() {
+		lista.clear();
+	}
 }

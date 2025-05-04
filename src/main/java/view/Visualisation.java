@@ -83,6 +83,18 @@ public class Visualisation extends Canvas implements IVisualisation {
         drawCustomers();
     }
 
+    @Override
+    public void resetDisplay() {
+        // Clear internal state
+        customers.clear();
+        queueSizes.clear();
+        for (ServicePointType type : ServicePointType.values()) {
+            queueSizes.put(type, 0);
+        }
+        // Redraw the canvas
+        clearDisplay();
+    }
+
     /**
      * Draws all service points on the canvas.
      * Renders each service point with its appropriate color, icon, and queue area.
