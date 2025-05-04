@@ -1,14 +1,10 @@
+import utils.CSVReport;
 import view.SimulatorGUI;
 
-/**
- * Main entry point for the store simulation application.
- * Delegates to the SimulatorGUI class to launch the JavaFX application.
- */
-public class Main { // Simulator using Java FX
-	/**
-	 * Main method that launches the simulation application.
-	 */
+public class Main {
+	// Simulator using Java FX
 	public static void main(String args[]) {
+		CSVReport.resetReportFile();
 		SimulatorGUI.main(args);
 	}
 }

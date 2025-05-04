@@ -3,8 +3,7 @@ package simu.model;
 import simu.data.SimulationConfig;
 import simu.framework.Clock;
 import simu.framework.Trace;
-
-import java.io.ObjectInputFilter;
+import utils.CSVReport;
 
 /**
  * Represents a customer in the store simulation.
@@ -91,7 +90,7 @@ public class Customer {
 	 * Gets the time when the customer arrived in the system.
 	 * @return The arrival time.
 	 */
-	public double getArrivalTime() {
+		public double getArrivalTime() {
 		return arrivalTime;
 	}
 
@@ -209,6 +208,9 @@ public class Customer {
 		totalTime += (removalTime - arrivalTime);
 		totalCustomers++;
 		double mean = totalTime / totalCustomers;
+
+		// Save to CSV
+		CSVReport.save(this, mean);
 
 		System.out.println("Customer #" + id + " (" + type + ") with " + items +
 				" items completed in " + String.format("%.2f", (removalTime - arrivalTime)) +
