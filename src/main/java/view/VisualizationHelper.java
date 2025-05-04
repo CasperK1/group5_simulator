@@ -9,16 +9,28 @@ import javafx.scene.text.TextAlignment;
 import simu.model.CustomerVisual;
 import simu.model.ServicePointType;
 
+/**
+ * Helper class providing methods for drawing simulation elements to the canvas.
+ * Contains specialized rendering methods for service points, customers, and UI elements.
+ */
 public class VisualizationHelper {
     private GraphicsContext gc;
 
+    /**
+     * Creates a new visualization helper for the specified graphics context.
+     *
+     * @param gc The graphics context to draw on
+     */
     public VisualizationHelper(GraphicsContext gc) {
         this.gc = gc;
     }
 
-//COLOR SET----------------------------------------------------------
-
-    // Helper method to get appropriate colors for service point types
+    /**
+     * Gets the appropriate background color for a service point type.
+     *
+     * @param type The service point type
+     * @return A color appropriate for the service point type
+     */
     public static Color getServicePointColor(ServicePointType type) {
         switch (type) {
             case ENTRANCE:
@@ -36,7 +48,12 @@ public class VisualizationHelper {
         }
     }
 
-    // Get appropriate color based on queue size
+    /**
+     * Gets an appropriate color for a queue area based on the queue size.
+     *
+     * @param queueSize The number of customers in the queue
+     * @return A color indicating the queue size (green for empty, red for large queues)
+     */
     public static Color getQueueColorBySize(int queueSize) {
         if (queueSize == 0) {
             return Color.rgb(220, 255, 220, 0.7); // Light green (empty)
@@ -49,8 +66,14 @@ public class VisualizationHelper {
         }
     }
 
-//ICON----------------------------------------------------------
-    // Draw icon for service point type
+    /**
+     * Draws an icon representing the specified service point type.
+     *
+     * @param type The service point type to draw
+     * @param x The x-coordinate to draw the icon
+     * @param y The y-coordinate to draw the icon
+     * @param size The size of the icon
+     */
     void drawServicePointIcon(ServicePointType type, double x, double y, double size) {
         gc.save();
         switch (type) {
@@ -73,7 +96,13 @@ public class VisualizationHelper {
         gc.restore();
     }
 
-    // Draw entrance icon (door)
+    /**
+     * Draws an icon representing the entrance service point.
+     *
+     * @param x The x-coordinate to draw the icon
+     * @param y The y-coordinate to draw the icon
+     * @param size The size of the icon
+     */
     public void drawEntranceIcon(double x, double y, double size) {
         gc.setFill(Color.STEELBLUE);
         gc.fillRect(x, y, size * 0.8, size);
@@ -85,7 +114,13 @@ public class VisualizationHelper {
         gc.fillOval(x + size * 0.6, y + size * 0.5, size * 0.1, size * 0.1);
     }
 
-    // Draw shopping icon (cart)
+    /**
+     * Draws an icon representing the shopping area service point.
+     *
+     * @param x The x-coordinate to draw the icon
+     * @param y The y-coordinate to draw the icon
+     * @param size The size of the icon
+     */
     public void drawShoppingIcon(double x, double y, double size) {
         // Cart body
         gc.setFill(Color.FORESTGREEN);
@@ -103,8 +138,14 @@ public class VisualizationHelper {
         gc.strokeLine(x + size * 0.8, y + size * 0.1, x + size * 0.5, y + size * 0.1);
     }
 
-    // Draw regular checkout icon (cashier)
-    public void drawRegularCheckoutIcon( double x, double y, double size) {
+    /**
+     * Draws an icon representing the regular checkout service point.
+     *
+     * @param x The x-coordinate to draw the icon
+     * @param y The y-coordinate to draw the icon
+     * @param size The size of the icon
+     */
+    public void drawRegularCheckoutIcon(double x, double y, double size) {
         // Register
         gc.setFill(Color.DARKGOLDENROD);
         gc.fillRect(x, y + size * 0.4, size * 0.8, size * 0.4);
@@ -120,7 +161,13 @@ public class VisualizationHelper {
         gc.fillOval(x + size * 0.6, y + size * 0.15, size * 0.2, size * 0.2);
     }
 
-    // Draw express checkout icon (fast cashier)
+    /**
+     * Draws an icon representing the express checkout service point.
+     *
+     * @param x The x-coordinate to draw the icon
+     * @param y The y-coordinate to draw the icon
+     * @param size The size of the icon
+     */
     public void drawExpressCheckoutIcon(double x, double y, double size) {
         // Register
         gc.setFill(Color.DARKGOLDENROD);
@@ -137,7 +184,13 @@ public class VisualizationHelper {
         gc.fillPolygon(xPoints, yPoints, 5);
     }
 
-    // Draw self checkout icon (touchscreen)
+    /**
+     * Draws an icon representing the self-checkout service point.
+     *
+     * @param x The x-coordinate to draw the icon
+     * @param y The y-coordinate to draw the icon
+     * @param size The size of the icon
+     */
     public void drawSelfCheckoutIcon(double x, double y, double size) {
         // Terminal base
         gc.setFill(Color.DARKGRAY);
@@ -157,8 +210,14 @@ public class VisualizationHelper {
         gc.fillRect(x + size * 0.5, y + size * 0.5, size * 0.1, size * 0.1);
     }
 
-
-    // Draw small person icons to represent people in queue
+    /**
+     * Draws small person icons to represent people in a queue.
+     *
+     * @param x The starting x-coordinate for the queue indicators
+     * @param y The y-coordinate for the queue indicators
+     * @param queueSize The number of people in the queue
+     * @param type The service point type of the queue
+     */
     void drawQueuePersonsIndicator(double x, double y, int queueSize, ServicePointType type) {
         // Limit the display to avoid crowding
         int maxIconsToShow = Math.min(queueSize, 5);
@@ -193,14 +252,23 @@ public class VisualizationHelper {
         }
     }
 
-    // Draw max items indicator for express checkout
+    /**
+     * Draws an indicator showing the maximum items allowed for express checkout.
+     *
+     * @param x The x-coordinate for the indicator
+     * @param y The y-coordinate for the indicator
+     */
     public void drawMaxItemsIndicator(double x, double y) {
         gc.setFill(Color.BLACK);
         gc.setFont(Font.font("Arial", FontWeight.BOLD, 10));
         gc.fillText("MAX 10", x + 80, y);
     }
 
-//CUSTOMER----------------------------------------------------------
+    /**
+     * Draws a customer on the canvas with item and ID indicators.
+     *
+     * @param customer The customer visual representation to draw
+     */
     void drawCustomer(CustomerVisual customer) {
         // Constants for better readability and easier adjustments
         final int IMAGE_SIZE = 40;

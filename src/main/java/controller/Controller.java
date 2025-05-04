@@ -13,6 +13,11 @@ import simu.data.SimulationConfig;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Controller class implementing both IControllerVtoM and IControllerMtoV interfaces.
+ * Manages communication between the view and model components of the simulation,
+ * handling user interactions from the UI and updating the view with model data.
+ */
 public class Controller implements IControllerVtoM, IControllerMtoV {
     public Button resetButton;
     private IEngine engine;
@@ -52,6 +57,10 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     private Map<Integer, Customer> activeCustomers = new ConcurrentHashMap<>();
     private Map<ServicePointType, Integer> queueSizes = new ConcurrentHashMap<>();
 
+    /**
+     * Initializes the controller.
+     * Sets up initial queue sizes for all service point types.
+     */
     @FXML
     public void initialize() {
         // Initialize queue sizes
@@ -139,11 +148,19 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         });
     }
 
+    /**
+     * Sets the UI component for this controller.
+     *
+     * @param ui The simulator UI instance
+     */
     public void setUI(ISimulatorUI ui) {
         this.ui = ui;
     }
 
-    /* Engine control methods */
+    /**
+     * Starts the simulation with the current configuration.
+     * Creates a new engine, sets simulation parameters, and starts the simulation thread.
+     */
     @FXML
     public void startSimulation() {
         // Create engine with the current configuration
@@ -172,6 +189,10 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         ((Thread) engine).start();
     }
 
+    /**
+     * Pauses the running simulation.
+     * Updates UI button states and sets the engine to paused state.
+     */
     @FXML
     public void pauseSimulation() {
         if (engine != null && !paused) {
@@ -185,6 +206,10 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         }
     }
 
+    /**
+     * Resumes a paused simulation.
+     * Updates UI button states and sets the engine to resume execution.
+     */
     @FXML
     public void resumeSimulation() {
         if (engine != null && paused) {
@@ -197,6 +222,9 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         }
     }
 
+    /**
+     * Decreases the simulation speed by increasing the delay between simulation steps.
+     */
     @FXML
     public void decreaseSpeed() {
         if (engine != null && !paused) {
@@ -207,6 +235,9 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         }
     }
 
+    /**
+     * Increases the simulation speed by decreasing the delay between simulation steps.
+     */
     @FXML
     public void increaseSpeed() {
         if (engine != null && !paused) {
@@ -223,7 +254,10 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     }
 
 
-    /* Configuration methods */
+    /**
+     * Saves the current simulation configuration.
+     * Currently shows an alert that configuration is saved without actual database storage.
+     */
     @FXML
     public void saveConfiguration() {
         // For now, just show an alert that config is saved (without DB)
@@ -238,6 +272,10 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
                 "Configuration '" + name + "' has been saved.");
     }
 
+    /**
+     * Loads a saved simulation configuration.
+     * Currently a placeholder that shows an alert message.
+     */
     @FXML
     public void loadConfiguration() {
         // placeholder message
@@ -253,12 +291,21 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         alert.showAndWait();
     }
 
-    // Method to get current configuration
+    /**
+     * Gets the current simulation configuration.
+     *
+     * @return The current SimulationConfig object
+     */
     public SimulationConfig getConfig() {
         return config;
     }
 
-    /* Visualization methods from the engine */
+    /**
+     * Shows the simulation end time in the UI.
+     * Updates the results label with formatted time value.
+     *
+     * @param time The final simulation time
+     */
     @Override
     public void showEndTime(double time) {
         Platform.runLater(() -> {
@@ -266,6 +313,12 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         });
     }
 
+    /**
+     * Notifies the UI that a new customer has been created.
+     * Adds the customer to tracking and updates the visualization.
+     *
+     * @param customer The newly created customer
+     */
     @Override
     public void customerCreated(Customer customer) {
         // Add to tracking
@@ -285,6 +338,14 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         });
     }
 
+    /**
+     * Notifies the UI that a customer has moved from one service point to another.
+     * Updates the visualization to show the customer's new position.
+     *
+     * @param customerId The ID of the customer that moved
+     * @param from The service point type the customer moved from
+     * @param to The service point type the customer moved to
+     */
     @Override
     public void customerMoved(int customerId, ServicePointType from, ServicePointType to) {
         Platform.runLater(() -> {
@@ -297,6 +358,13 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         });
     }
 
+    /**
+     * Notifies the UI that a customer has completed service and is leaving the system.
+     * Removes the customer from visualization and updates queue sizes.
+     *
+     * @param customerId The ID of the customer that completed service
+     * @param type The service point type the customer was at when completing service
+     */
     @Override
     public void customerCompleted(int customerId, ServicePointType type) {
         // Update visualization
