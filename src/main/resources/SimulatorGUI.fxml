@@ -54,6 +54,9 @@
                 <Button fx:id="startButton" mnemonicParsing="false" onAction="#startSimulation" text="Start" />
                 <Button fx:id="pauseButton" disable="true" mnemonicParsing="false" onAction="#pauseSimulation" text="Pause" />
                 <Button fx:id="resumeButton" disable="true" mnemonicParsing="false" onAction="#resumeSimulation" text="Resume" />
+                <Button fx:id="resetButton" mnemonicParsing="false" onAction="#resetSimulation" text="Reset" />
+
+
                 <Button fx:id="slowButton" mnemonicParsing="false" onAction="#decreaseSpeed" text="Slow" />
                 <Button fx:id="speedUpButton" mnemonicParsing="false" onAction="#increaseSpeed" text="Speed Up" />
             </children>

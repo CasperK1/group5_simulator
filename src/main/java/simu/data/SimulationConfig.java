@@ -264,4 +264,26 @@ public class SimulationConfig {
     public void setSelfCheckoutMultiplier(double selfCheckoutMultiplier) {
         this.selfCheckoutMultiplier = selfCheckoutMultiplier;
     }
+
+    public void reset() {
+        // Reset arrival configuration
+        this.arrivalDistribution = "Negexp";
+        this.arrivalParam = 5.0;
+
+        // Reset customer parameters
+        this.expressCustomerPercentage = 20.0;
+        this.minRegularItems = 10;
+        this.maxRegularItems = 30;
+        this.minExpressItems = 1;
+        this.maxExpressItems = 10;
+
+        // Reset service point parameters
+        this.serviceDistribution = "Normal";
+        this.serviceParam = 8.0;
+        this.shoppingMultiplier = 1;
+        this.regularMultiplier = 1.0;
+        this.expressMultiplier = 0.7;
+        this.selfCheckoutMultiplier = 1.2;
+    }
+
 }

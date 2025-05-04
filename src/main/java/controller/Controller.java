@@ -6,6 +6,7 @@ import javafx.scene.control.*;
 import simu.framework.IEngine;
 import simu.model.*;
 import view.ISimulatorUI;
+import view.SimulatorGUI;
 import view.Visualisation;
 import simu.data.SimulationConfig;
 
@@ -18,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * handling user interactions from the UI and updating the view with model data.
  */
 public class Controller implements IControllerVtoM, IControllerMtoV {
+    public Button resetButton;
     private IEngine engine;
     private ISimulatorUI ui;
     private boolean paused = false;
@@ -32,6 +34,7 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML private Button resumeButton;
     @FXML private Button slowButton;
     @FXML private Button speedUpButton;
+    @FXML private Button getResetButton;
 
     // Configuration tab fields
     @FXML private ComboBox<String> arrivalDistributionCombo;
@@ -130,6 +133,19 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         DoubleFieldController.setupField(regularMultiplier, 0.1, 10, config::setRegularMultiplier);
         DoubleFieldController.setupField(expressMultiplier, 0.1, 10, config::setExpressMultiplier);
         DoubleFieldController.setupField(selfCheckoutMultiplier, 0.1, 10, config::setSelfCheckoutMultiplier);
+
+        delayField.textProperty().addListener((observable, oldValue, newValue) -> {
+            System.out.println("Delay field changed to: " + newValue);
+            try {
+                long delay = Long.parseLong(newValue);
+                if (engine != null) {
+                    engine.setDelay(delay);
+                    System.out.println("Engine delay updated to: " + delay + " ms");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid delay input: " + newValue);
+            }
+        });
     }
 
     /**
@@ -159,7 +175,6 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         if (ui != null) {
             ui.getVisualisation().clearDisplay();
         }
-
         activeCustomers.clear();
         for (ServicePointType type : ServicePointType.values()) {
             queueSizes.put(type, 0);
@@ -213,7 +228,10 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML
     public void decreaseSpeed() {
         if (engine != null && !paused) {
-            engine.setDelay((long) (engine.getDelay() * 1.10));
+            long newDelay = (long) (engine.getDelay() + 20);
+            engine.setDelay(newDelay);
+            delayField.setText(String.valueOf(newDelay));
+            System.out.println("Delay decreased to: " + engine.getDelay() + " ms");
         }
     }
 
@@ -223,9 +241,18 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML
     public void increaseSpeed() {
         if (engine != null && !paused) {
-            engine.setDelay((long) (engine.getDelay() * 0.9));
+            long newDelay = (long) (engine.getDelay() - 20);
+            engine.setDelay(newDelay);
+            delayField.setText(String.valueOf(newDelay));
+            System.out.println("Delay increased to: " + engine.getDelay() + " ms");
         }
     }
+
+    @FXML
+    public void resetSimulation() {
+
+    }
+
 
     /**
      * Saves the current simulation configuration.
