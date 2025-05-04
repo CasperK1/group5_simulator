@@ -15,7 +15,11 @@ import simu.model.ServicePointType;
 import java.util.HashMap;
 import java.util.Map;
 
-// TODO: CUSTOMERS NOT MOVING TO CHECKOUT, REGULAR CUSTOMERS USING EXPRESS CHECKOUT
+/**
+ * Canvas-based visualization for the store simulation.
+ * Responsible for rendering the simulation state, including service points
+ * and customers, and handling customer movement through the system.
+ */
 public class Visualisation extends Canvas implements IVisualisation {
     private GraphicsContext gc;
     private VisualizationHelper helper;
@@ -23,6 +27,13 @@ public class Visualisation extends Canvas implements IVisualisation {
     private Map<ServicePointType, Integer> queueSizes;
     private Map<Integer, CustomerVisual> customers;
 
+    /**
+     * Creates a new visualization canvas with the specified dimensions.
+     * Initializes the helper classes and data structures for tracking simulation elements.
+     *
+     * @param w The width of the canvas
+     * @param h The height of the canvas
+     */
     public Visualisation(int w, int h) {
         super(w, h);
         gc = this.getGraphicsContext2D();
@@ -38,6 +49,10 @@ public class Visualisation extends Canvas implements IVisualisation {
         clearDisplay();
     }
 
+    /**
+     * Initializes the service point areas on the canvas.
+     * Defines the boundaries for each service point type.
+     */
     private void initializeServicePoints() {
         servicePoints.put(ServicePointType.ENTRANCE,
                 new Rectangle2D(50, 80, 120, 350));
@@ -55,6 +70,10 @@ public class Visualisation extends Canvas implements IVisualisation {
                 new Rectangle2D(550, 50, 200, 100));
     }
 
+    /**
+     * Clears the display and redraws all simulation elements.
+     * Fills the canvas with a white background and renders service points and customers.
+     */
     @Override
     public void clearDisplay() {
         gc.setFill(Color.WHITE);
@@ -64,6 +83,10 @@ public class Visualisation extends Canvas implements IVisualisation {
         drawCustomers();
     }
 
+    /**
+     * Draws all service points on the canvas.
+     * Renders each service point with its appropriate color, icon, and queue area.
+     */
     private void drawServicePoints() {
         // Constants for visual styling
         final int CORNER_RADIUS = 8;
@@ -99,12 +122,24 @@ public class Visualisation extends Canvas implements IVisualisation {
         }
     }
 
-    // Get occupancy level
+    /**
+     * Gets the occupancy level of a service point.
+     *
+     * @param type The service point type
+     * @return The occupancy level (0 = free, 1 = busy, 2 = full)
+     */
     private int getOccupancyLevel(ServicePointType type) {
         // 0 = free, 1 = busy, 2 = full
         return 1;
     }
 
+    /**
+     * Draws the queue area for a service point.
+     * Shows the queue size and visual indicators for waiting customers.
+     *
+     * @param type The service point type
+     * @param servicePoint The rectangle defining the service point area
+     */
     private void drawQueueArea(ServicePointType type, Rectangle2D servicePoint) {
         // Constants for visual consistency
         final int CORNER_RADIUS = 6;
@@ -147,6 +182,11 @@ public class Visualisation extends Canvas implements IVisualisation {
         }
     }
 
+    /**
+     * Increments the queue size for a service point and updates the display.
+     *
+     * @param type The service point type whose queue size should be incremented
+     */
     public void incrementQueueSize(ServicePointType type) {
         int size = queueSizes.getOrDefault(type, 0);
         size++;
@@ -154,6 +194,11 @@ public class Visualisation extends Canvas implements IVisualisation {
         clearDisplay();
     }
 
+    /**
+     * Decrements the queue size for a service point and updates the display.
+     *
+     * @param type The service point type whose queue size should be decremented
+     */
     public void decrementQueueSize(ServicePointType type) {
         int size = queueSizes.getOrDefault(type, 0);
         if (size > 0) {
@@ -163,6 +208,13 @@ public class Visualisation extends Canvas implements IVisualisation {
         clearDisplay();
     }
 
+    /**
+     * Formats a service point type name for display.
+     * Converts from enum format (SNAKE_CASE) to Title Case with spaces.
+     *
+     * @param type The service point type to format
+     * @return The formatted name
+     */
     private String formatServicePointName(ServicePointType type) {
         String name = type.toString();
         String[] words = name.split("_");
@@ -178,18 +230,33 @@ public class Visualisation extends Canvas implements IVisualisation {
         return formatted.toString();
     }
 
+    /**
+     * Draws all customers on the canvas.
+     */
     private void drawCustomers() {
         for (CustomerVisual customer : customers.values()) {
             helper.drawCustomer(customer);
         }
     }
 
+    /**
+     * Creates a new customer in the visualization.
+     * Legacy method implementation from IVisualisation interface.
+     */
     @Override
     public void newCustomer() {
         int newId = customers.size() + 1;
         addNewCustomer(newId, CustomerType.REGULAR, 15, ServicePointType.ENTRANCE);
     }
 
+    /**
+     * Adds a new customer to the visualization.
+     *
+     * @param id The customer's unique ID
+     * @param type The customer type (regular or express)
+     * @param items The number of items the customer is purchasing
+     * @param location The initial service point location of the customer
+     */
     public void addNewCustomer(int id, CustomerType type, int items, ServicePointType location) {
         CustomerVisual customer = new CustomerVisual(id, type, items);
         placeCustomerAtServicePoint(customer, location);
@@ -197,6 +264,13 @@ public class Visualisation extends Canvas implements IVisualisation {
         clearDisplay(); // Redraw everything
     }
 
+    /**
+     * Places a customer at a specified service point location.
+     * Positions the customer randomly within the service point area.
+     *
+     * @param customer The customer visual to place
+     * @param location The service point location to place the customer at
+     */
     private void placeCustomerAtServicePoint(CustomerVisual customer, ServicePointType location) {
         Rectangle2D rect = servicePoints.get(location);
         if (rect == null) return;
@@ -211,6 +285,13 @@ public class Visualisation extends Canvas implements IVisualisation {
         customer.setLocation(location);
     }
 
+    /**
+     * Moves a customer from one service point to another.
+     *
+     * @param customerId The ID of the customer to move
+     * @param from The service point the customer is moving from
+     * @param to The service point the customer is moving to
+     */
     public void moveCustomer(int customerId, ServicePointType from, ServicePointType to) {
         CustomerVisual customer = customers.get(customerId);
         if (customer != null) {
@@ -220,11 +301,22 @@ public class Visualisation extends Canvas implements IVisualisation {
         }
     }
 
+    /**
+     * Removes a customer from the visualization.
+     *
+     * @param customerId The ID of the customer to remove
+     */
     public void removeCustomer(int customerId) {
         customers.remove(customerId);
         clearDisplay();
     }
 
+    /**
+     * Updates the number of items a customer has.
+     *
+     * @param customerId The ID of the customer to update
+     * @param items The new item count
+     */
     public void updateCustomerItems(int customerId, int items) {
         CustomerVisual customer = customers.get(customerId);
         if (customer != null) {

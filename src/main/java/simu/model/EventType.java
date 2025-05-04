@@ -2,11 +2,39 @@ package simu.model;
 
 import simu.framework.IEventType;
 
+/**
+ * Enumeration of event types used in the store simulation.
+ * Defines the different events that can occur during the simulation,
+ * representing customer arrivals and departures from different service points.
+ */
 public enum EventType implements IEventType {
-	ARR1,   // Arrival at entrance
-	DEP1,   // Departure from entrance
-	DEP2,   // Departure from shopping area
-	DEP3,   // Departure from regular checkout
-	DEP4,   // Departure from express checkout
-	DEP5;   // Departure from self-checkout
+	/**
+	 * Customer arrival at the entrance of the store.
+	 */
+	ARR1,
+
+	/**
+	 * Customer departure from the entrance to the shopping area.
+	 */
+	DEP1,
+
+	/**
+	 * Customer departure from the shopping area to a checkout.
+	 */
+	DEP2,
+
+	/**
+	 * Customer departure from the regular checkout (complete service).
+	 */
+	DEP3,
+
+	/**
+	 * Customer departure from the express checkout (complete service).
+	 */
+	DEP4,
+
+	/**
+	 * Customer departure from the self-checkout (complete service).
+	 */
+	DEP5;
 }
