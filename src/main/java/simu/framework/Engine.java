@@ -104,6 +104,25 @@ public abstract class Engine extends Thread implements IEngine {
 		results();
 	}
 
+	public void reset() {
+		// Reset the simulation time
+		simulationTime = 0;
+
+		// Reset the event list (clear any remaining events)
+		eventList.clear(); // If using PriorityQueue, clear it
+
+		// Reset paused state
+		paused = false;
+
+		// Optionally, reset the clock or service points if necessary
+		clock.setTime(0);
+
+		// Reinitialize service points if needed
+		for (ServicePoint sp : servicePoints) {
+			sp.reset(); // Assuming you have a reset method in ServicePoint
+		}
+	}
+
 	/**
 	 * Processes all B-phase events scheduled for the current time.
 	 */

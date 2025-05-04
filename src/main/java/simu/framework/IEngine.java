@@ -6,4 +6,5 @@ public interface IEngine {
 	public long getDelay();
 	public void setPaused(boolean paused);
 	public boolean isPaused();
+	void reset();
 }

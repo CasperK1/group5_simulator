@@ -20,6 +20,9 @@ public class SimulationConfig {
     private double expressMultiplier = 0.7;
     private double selfCheckoutMultiplier = 1.2;
 
+    private long defaultDelay = 150;
+    private long defaultSimulationTime = 1000;
+
     // Getters and setters
 
     /**
@@ -284,6 +287,34 @@ public class SimulationConfig {
         this.regularMultiplier = 1.0;
         this.expressMultiplier = 0.7;
         this.selfCheckoutMultiplier = 1.2;
+    }
+
+    /**
+     * Gets the default delay used in the simulation.
+     *
+     * @return The default delay in milliseconds
+     */
+    public long getDefaultDelay() {
+        return defaultDelay;
+    }
+
+    /**
+     * Gets the default simulation time used in the simulation.
+     *
+     * @return The default simulation time in seconds
+     */
+    public double getDefaultSimulationTime() {
+        return defaultSimulationTime;
+    }
+
+
+    /**
+     * Sets the default delay used in the simulation.
+     *
+     * @param defaultDelay The delay in milliseconds
+     */
+    public void setDefaultDelay(long defaultDelay) {
+        this.defaultDelay = defaultDelay;
     }
 
 }

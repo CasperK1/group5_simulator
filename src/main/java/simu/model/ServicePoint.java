@@ -110,4 +110,17 @@ public class ServicePoint {
 	public boolean isOnQueue(){
 		return queue.size() != 0;
 	}
+
+	/**
+	 * Resets the service point to its initial state.
+	 * Clears the queue and all tracked statistics.
+	 */
+	public void reset() {
+		queue.clear();
+		reserved = false;
+		customersServed = 0;
+		totalServiceTime = 0.0;
+		totalWaitingTime = 0.0;
+		lastServiceStartTime = 0.0;
+	}
 }
