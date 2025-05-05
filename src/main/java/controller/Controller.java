@@ -501,6 +501,7 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
                 servicePointServiceTime.merge(from, shoppingTime, Double::sum);
             }
 
+
             // UI & chart updates
             Platform.runLater(() -> {
                 if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
@@ -509,6 +510,9 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
                     queueSizes.merge(to, 1, Integer::sum);
                     queueSizes.merge(from, -1, (oldValue, value) -> Math.max(0, oldValue + value));
 
+                    vis.incrementQueueSize(to);
+                    vis.decrementQueueSize(from); // <-- crucial to restore visual state
+
                     int totalQueue = totalQueueLength();
                     if (totalQueue > maxQueueLength) {
                         maxQueueLength = totalQueue;
@@ -516,6 +520,8 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
 
                     double currentTime = Clock.getInstance().getTime();
                     queueLengthSeries.getData().add(new XYChart.Data<>(currentTime, totalQueue));
+
+                    updateStatistics();
                 }
             });
         }
@@ -562,6 +568,7 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
             if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
                 vis.removeCustomer(customerId);
                 queueSizes.merge(type, -1, (oldValue, value) -> Math.max(0, oldValue + value));
+                vis.decrementQueueSize(type); // <-- add this after updating queue size
             }
         });
     }
