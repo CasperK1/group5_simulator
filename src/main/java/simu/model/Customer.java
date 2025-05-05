@@ -38,9 +38,12 @@ public class Customer {
 		arrivalTime = Clock.getInstance().getTime();
 		entranceTime = arrivalTime;
 		config = cfg;
-
-		boolean isExpress = Math.random() * 100 < config.getExpressCustomerPercentage();
-		type = isExpress ? CustomerType.EXPRESS : CustomerType.REGULAR;
+		if (config.getExpressCustomerPercentage() <= 0) {
+			type = CustomerType.REGULAR;
+		} else {
+			boolean isExpress = Math.random() * 100 < config.getExpressCustomerPercentage();
+			type = isExpress ? CustomerType.EXPRESS : CustomerType.REGULAR;
+		}
 
 		if (type == CustomerType.EXPRESS) {
 			items = config.getMinExpressItems() +
@@ -56,7 +59,6 @@ public class Customer {
 		Trace.out(Trace.Level.INFO, "New customer #" + id + " (" + type + ") with " + items +
 				" items arrived at " + arrivalTime);
 	}
-
 	public ServicePointType getCurrentLocation() {
 		return currentLocation;
 	}
