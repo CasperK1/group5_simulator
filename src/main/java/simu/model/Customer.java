@@ -248,4 +248,8 @@ public class Customer {
 		totalTime = 0;
 		totalCustomers = 0;
 	}
+	public static int getLatestCustomerId() {
+		return i;
+	}
+
 }

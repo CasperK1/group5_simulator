@@ -33,54 +33,100 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     private final SimulationConfig config = new SimulationConfig();
 
     // FXML UI components
-    @FXML private TextField simulationTimeField;
-    @FXML private TextField delayField;
-    @FXML private Label resultsLabel;
-    @FXML private Button startButton;
-    @FXML private Button pauseButton;
-    @FXML private Button resumeButton;
-    @FXML private Button slowButton;
-    @FXML private Button speedUpButton;
-    @FXML private Button getResetButton;
+    @FXML
+    private TextField simulationTimeField;
+    @FXML
+    private TextField delayField;
+    @FXML
+    private Label resultsLabel;
+    @FXML
+    private Button startButton;
+    @FXML
+    private Button pauseButton;
+    @FXML
+    private Button resumeButton;
+    @FXML
+    private Button slowButton;
+    @FXML
+    private Button speedUpButton;
+    @FXML
+    private Button getResetButton;
 
     // FXML Statistics components
-    @FXML private Label totalCustomersLabel;
-    @FXML private Label avgWaitTimeLabel;
-    @FXML private Label maxQueueLabel;
+    @FXML
+    private Label totalCustomersLabel;
+    @FXML
+    private Label avgWaitTimeLabel;
+    @FXML
+    private Label maxQueueLabel;
 
-    @FXML private Label entranceCustomersLabel;
-    @FXML private Label shoppingCustomersLabel;
-    @FXML private Label regularCustomersLabel;
-    @FXML private Label expressCustomersLabel;
+    @FXML
+    private Label entranceCustomersLabel;
+    @FXML
+    private Label shoppingCustomersLabel;
+    @FXML
+    private Label regularCustomersLabel;
+    @FXML
+    private Label expressCustomersLabel;
+    @FXML
+    private Label selfCheckoutCustomersLabel;
+    @FXML
+    private Label selfCheckoutServiceTimeLabel;
+    @FXML
+    private Label selfCheckoutUtilizationLabel;
 
-    @FXML private Label entranceServiceTimeLabel;
-    @FXML private Label shoppingServiceTimeLabel;
-    @FXML private Label regularServiceTimeLabel;
-    @FXML private Label expressServiceTimeLabel;
+    @FXML
+    private Label entranceServiceTimeLabel;
+    @FXML
+    private Label shoppingServiceTimeLabel;
+    @FXML
+    private Label regularServiceTimeLabel;
+    @FXML
+    private Label expressServiceTimeLabel;
 
-    @FXML private Label entranceUtilizationLabel;
-    @FXML private Label shoppingUtilizationLabel;
-    @FXML private Label regularUtilizationLabel;
-    @FXML private Label expressUtilizationLabel;
+    @FXML
+    private Label entranceUtilizationLabel;
+    @FXML
+    private Label shoppingUtilizationLabel;
+    @FXML
+    private Label regularUtilizationLabel;
+    @FXML
+    private Label expressUtilizationLabel;
 
-    @FXML private LineChart<Number, Number> queueLengthChart;
+    @FXML
+    private LineChart<Number, Number> queueLengthChart;
 
     // Configuration tab fields
-    @FXML private ComboBox<String> arrivalDistributionCombo;
-    @FXML private TextField arrivalParamField;
-    @FXML private Slider expressCustomerSlider;
-    @FXML private Label expressPercentLabel;
-    @FXML private TextField minRegularItems;
-    @FXML private TextField maxRegularItems;
-    @FXML private TextField minExpressItems;
-    @FXML private TextField maxExpressItems;
-    @FXML private ComboBox<String> serviceDistributionCombo;
-    @FXML private TextField serviceParamField;
-    @FXML private TextField shoppingMultiplier;
-    @FXML private TextField regularMultiplier;
-    @FXML private TextField expressMultiplier;
-    @FXML private TextField selfCheckoutMultiplier;
-    @FXML private TextField configNameField;
+    @FXML
+    private ComboBox<String> arrivalDistributionCombo;
+    @FXML
+    private TextField arrivalParamField;
+    @FXML
+    private Slider expressCustomerSlider;
+    @FXML
+    private Label expressPercentLabel;
+    @FXML
+    private TextField minRegularItems;
+    @FXML
+    private TextField maxRegularItems;
+    @FXML
+    private TextField minExpressItems;
+    @FXML
+    private TextField maxExpressItems;
+    @FXML
+    private ComboBox<String> serviceDistributionCombo;
+    @FXML
+    private TextField serviceParamField;
+    @FXML
+    private TextField shoppingMultiplier;
+    @FXML
+    private TextField regularMultiplier;
+    @FXML
+    private TextField expressMultiplier;
+    @FXML
+    private TextField selfCheckoutMultiplier;
+    @FXML
+    private TextField configNameField;
 
     // Line Chart
     private XYChart.Series<Number, Number> queueLengthSeries = new XYChart.Series<>();
@@ -417,49 +463,101 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
      * Updates the visualization to show the customer's new position.
      *
      * @param customerId The ID of the customer that moved
-     * @param from The service point type the customer moved from
-     * @param to The service point type the customer moved to
+     * @param from       The service point type the customer moved from
+     * @param to         The service point type the customer moved to
      */
+
     @Override
     public void customerMoved(int customerId, ServicePointType from, ServicePointType to) {
-        Platform.runLater(() -> {
-            if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
-                vis.moveCustomer(customerId, from, to);
+        Customer customer = activeCustomers.get(customerId);
 
-                queueSizes.merge(to, 1, Integer::sum);
-                queueSizes.merge(from, -1, (oldValue, value) -> Math.max(0, oldValue + value));
+        if (customer != null) {
+            // Record timestamps for statistics
+            double now = Clock.getInstance().getTime();
 
-                int totalQueue = totalQueueLength();
-                if (totalQueue > maxQueueLength) {
-                    maxQueueLength = totalQueue;
-                }
-
-                double currentTime = Clock.getInstance().getTime();
-                queueLengthSeries.getData().add(new XYChart.Data<>(currentTime, totalQueue));
+            // Start shopping timer when customer enters shopping
+            if (to == ServicePointType.SHOPPING) {
+                customer.startShopping();
             }
-        });
+
+            // Track entrance service time when leaving entrance
+            if (from == ServicePointType.ENTRANCE && to == ServicePointType.SHOPPING) {
+                double entranceTime = now - customer.getArrivalTime();
+                servicePointCustomerCount.merge(from, 1, Integer::sum);
+                servicePointServiceTime.merge(from, entranceTime, Double::sum);
+            }
+
+            // End shopping and start checkout when moving to any checkout type
+            if (from == ServicePointType.SHOPPING &&
+                    (to == ServicePointType.REGULAR_CHECKOUT ||
+                            to == ServicePointType.EXPRESS_CHECKOUT ||
+                            to == ServicePointType.SELF_CHECKOUT)) {
+
+                customer.endShopping();
+                customer.startCheckout();
+
+                double shoppingTime = customer.getShoppingDuration();
+                servicePointCustomerCount.merge(from, 1, Integer::sum);
+                servicePointServiceTime.merge(from, shoppingTime, Double::sum);
+            }
+
+            // UI & chart updates
+            Platform.runLater(() -> {
+                if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
+                    vis.moveCustomer(customerId, from, to);
+
+                    queueSizes.merge(to, 1, Integer::sum);
+                    queueSizes.merge(from, -1, (oldValue, value) -> Math.max(0, oldValue + value));
+
+                    int totalQueue = totalQueueLength();
+                    if (totalQueue > maxQueueLength) {
+                        maxQueueLength = totalQueue;
+                    }
+
+                    double currentTime = Clock.getInstance().getTime();
+                    queueLengthSeries.getData().add(new XYChart.Data<>(currentTime, totalQueue));
+                }
+            });
+        }
     }
+
 
     /**
      * Notifies the UI that a customer has completed service and is leaving the system.
      * Removes the customer from visualization and updates queue sizes.
      *
      * @param customerId The ID of the customer that completed service
-     * @param type The service point type the customer was at when completing service
+     * @param type       The service point type the customer was at when completing service
      */
     @Override
     public void customerCompleted(int customerId, ServicePointType type) {
         Customer customer = activeCustomers.remove(customerId);
         if (customer != null) {
-            customer.setRemovalTime(Clock.getInstance().getTime());
+            double now = Clock.getInstance().getTime();
+            customer.setRemovalTime(now);
+
             customer.reportResults();
 
-            servicePointCustomerCount.put(type, servicePointCustomerCount.get(type) + 1);
-            servicePointServiceTime.put(type, servicePointServiceTime.get(type) + customer.getCheckoutDuration());
+            // Calculate service duration depending on location
+            double duration = 0.0;
+            switch (type) {
+                case REGULAR_CHECKOUT:
+                case EXPRESS_CHECKOUT:
+                case SELF_CHECKOUT: // ✅ Add this
+                    duration = customer.getCheckoutDuration();
+                    break;
+                case SHOPPING:
+                    duration = customer.getShoppingDuration();
+                    break;
+            }
+
+            servicePointCustomerCount.merge(type, 1, Integer::sum);
+            servicePointServiceTime.merge(type, duration, Double::sum);
 
             updateStatistics();
         }
 
+        // UI cleanup
         Platform.runLater(() -> {
             if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
                 vis.removeCustomer(customerId);
@@ -468,13 +566,15 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         });
     }
 
+
+
     private int totalQueueLength() {
         return queueSizes.values().stream().mapToInt(Integer::intValue).sum();
     }
 
     private void updateStatistics() {
         Platform.runLater(() -> {
-            totalCustomersLabel.setText(String.valueOf(Customer.getTotalCompletedCustomers()));
+            totalCustomersLabel.setText(String.valueOf(Customer.getLatestCustomerId()));
             avgWaitTimeLabel.setText(String.format("%.2f", Customer.getMeanServiceTime()));
             maxQueueLabel.setText(String.valueOf(maxQueueLength));
 
@@ -482,16 +582,22 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
             updateServicePointStats(ServicePointType.SHOPPING, shoppingCustomersLabel, shoppingServiceTimeLabel, shoppingUtilizationLabel);
             updateServicePointStats(ServicePointType.REGULAR_CHECKOUT, regularCustomersLabel, regularServiceTimeLabel, regularUtilizationLabel);
             updateServicePointStats(ServicePointType.EXPRESS_CHECKOUT, expressCustomersLabel, expressServiceTimeLabel, expressUtilizationLabel);
+            updateServicePointStats(ServicePointType.SELF_CHECKOUT, selfCheckoutCustomersLabel, selfCheckoutServiceTimeLabel, selfCheckoutUtilizationLabel); // <-- ADD THIS
         });
     }
 
+
     private void updateServicePointStats(ServicePointType type, Label customers, Label avgService, Label utilization) {
-        int served = servicePointCustomerCount.get(type);
-        double totalServiceTime = servicePointServiceTime.get(type);
+        // Live customer count at the service point
+        int currentCount = queueSizes.getOrDefault(type, 0);
+
+        // Completed customer stats
+        int completed = servicePointCustomerCount.getOrDefault(type, 0);
+        double totalServiceTime = servicePointServiceTime.getOrDefault(type, 0.0);
         double totalTime = Clock.getInstance().getTime();
 
-        customers.setText(String.valueOf(served));
-        avgService.setText(served > 0 ? String.format("%.2f", totalServiceTime / served) : "0.00");
+        customers.setText(String.valueOf(currentCount));
+        avgService.setText(completed > 0 ? String.format("%.2f", totalServiceTime / completed) : "0.00");
         utilization.setText(totalTime > 0 ? String.format("%.0f%%", (totalServiceTime / totalTime) * 100) : "0%");
     }
 }
