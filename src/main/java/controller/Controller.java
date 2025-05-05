@@ -13,7 +13,6 @@ import simu.model.*;
 import simu.data.SimulationConfig;
 
 import view.ISimulatorUI;
-import view.SimulatorGUI;
 import view.Visualisation;
 
 
@@ -44,7 +43,7 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML private Button speedUpButton;
     @FXML private Button getResetButton;
 
-    // Statistics UI
+    // FXML Statistics components
     @FXML private Label totalCustomersLabel;
     @FXML private Label avgWaitTimeLabel;
     @FXML private Label maxQueueLabel;
@@ -84,7 +83,6 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML private TextField configNameField;
 
     // Line Chart
-    @FXML private LineChart<Number, Number> queueLengthChart;
     private XYChart.Series<Number, Number> queueLengthSeries = new XYChart.Series<>();
 
     // Customer tracking
@@ -93,7 +91,6 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     private Map<ServicePointType, Integer> servicePointCustomerCount = new HashMap<>();
     private Map<ServicePointType, Double> servicePointServiceTime = new HashMap<>();
 
-    private XYChart.Series<Number, Number> queueLengthSeries;
 
     private int maxQueueLength = 0;
 
@@ -109,12 +106,11 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
             servicePointCustomerCount.put(type, 0);
             servicePointServiceTime.put(type, 0.0);
         }
-        if (!queueLengthChart.getData().contains(queueLengthSeries)) {
-            queueLengthChart.getData().add(queueLengthSeries);
-        }
-        queueLengthSeries.setName("Queue Length");
-
         initializeConfigControls();
+
+        queueLengthSeries = new XYChart.Series<>();
+        queueLengthSeries.setName("Queue Length");
+        queueLengthChart.getData().add(queueLengthSeries);
     }
 
     private void initializeConfigControls() {
@@ -210,6 +206,7 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
      */
     @FXML
     public void startSimulation() {
+        // Create engine with the current configuration
         engine = new MyEngine(this, config);
 
         double simTime = Double.parseDouble(simulationTimeField.getText());
@@ -226,16 +223,18 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         for (ServicePointType type : ServicePointType.values()) {
             queueSizes.put(type, 0);
             servicePointCustomerCount.put(type, 0);
-            servicePointTotalTime.put(type, 0.0);
+            servicePointServiceTime.put(type, 0.0);
         }
         queueLengthSeries.getData().clear();
         maxQueueLength = 0;
         Customer.resetStatistics();
 
+        // Update button states
         startButton.setDisable(true);
         pauseButton.setDisable(false);
         resumeButton.setDisable(true);
 
+        // Start the engine
         ((Thread) engine).start();
     }
 
@@ -426,12 +425,18 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         Platform.runLater(() -> {
             if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
                 vis.moveCustomer(customerId, from, to);
-                if (queueSizes.containsKey(to)) {
-                    vis.incrementQueueSize(to);
+
+                queueSizes.merge(to, 1, Integer::sum);
+                queueSizes.merge(from, -1, (oldValue, value) -> Math.max(0, oldValue + value));
+
+                int totalQueue = totalQueueLength();
+                if (totalQueue > maxQueueLength) {
+                    maxQueueLength = totalQueue;
                 }
+
+                double currentTime = Clock.getInstance().getTime();
+                queueLengthSeries.getData().add(new XYChart.Data<>(currentTime, totalQueue));
             }
-            double currentTime = Clock.getInstance().getTime();
-            queueLengthSeries.getData().add(new XYChart.Data<>(currentTime, getTotalQueueSize()));
         });
     }
 
@@ -449,8 +454,8 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
             customer.setRemovalTime(Clock.getInstance().getTime());
             customer.reportResults();
 
-            servicePointCustomerCount.merge(type, 1, Integer::sum);
-            servicePointTotalTime.merge(type, customer.getTotalTime(), Double::sum);
+            servicePointCustomerCount.put(type, servicePointCustomerCount.get(type) + 1);
+            servicePointServiceTime.put(type, servicePointServiceTime.get(type) + customer.getCheckoutDuration());
 
             updateStatistics();
         }
@@ -458,12 +463,12 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         Platform.runLater(() -> {
             if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
                 vis.removeCustomer(customerId);
+                queueSizes.merge(type, -1, (oldValue, value) -> Math.max(0, oldValue + value));
             }
-            queueSizes.put(type, Math.max(0, queueSizes.getOrDefault(type, 0) - 1));
         });
     }
 
-    private int getTotalQueueSize() {
+    private int totalQueueLength() {
         return queueSizes.values().stream().mapToInt(Integer::intValue).sum();
     }
 
@@ -473,22 +478,20 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
             avgWaitTimeLabel.setText(String.format("%.2f", Customer.getMeanServiceTime()));
             maxQueueLabel.setText(String.valueOf(maxQueueLength));
 
-            double currentTime = Clock.getInstance().getTime();
-            if (currentTime > 0) {
-                updateServicePointStats(ServicePointType.ENTRANCE, entranceCustomersLabel, entranceServiceTimeLabel, entranceUtilizationLabel, currentTime);
-                updateServicePointStats(ServicePointType.SHOPPING, shoppingCustomersLabel, shoppingServiceTimeLabel, shoppingUtilizationLabel, currentTime);
-                updateServicePointStats(ServicePointType.REGULAR_CHECKOUT, regularCustomersLabel, regularServiceTimeLabel, regularUtilizationLabel, currentTime);
-                updateServicePointStats(ServicePointType.EXPRESS_CHECKOUT, expressCustomersLabel, expressServiceTimeLabel, expressUtilizationLabel, currentTime);
-            }
+            updateServicePointStats(ServicePointType.ENTRANCE, entranceCustomersLabel, entranceServiceTimeLabel, entranceUtilizationLabel);
+            updateServicePointStats(ServicePointType.SHOPPING, shoppingCustomersLabel, shoppingServiceTimeLabel, shoppingUtilizationLabel);
+            updateServicePointStats(ServicePointType.REGULAR_CHECKOUT, regularCustomersLabel, regularServiceTimeLabel, regularUtilizationLabel);
+            updateServicePointStats(ServicePointType.EXPRESS_CHECKOUT, expressCustomersLabel, expressServiceTimeLabel, expressUtilizationLabel);
         });
     }
 
-    private void updateServicePointStats(ServicePointType type, Label customers, Label avgService, Label utilization, double currentTime) {
-        int count = servicePointCustomerCount.getOrDefault(type, 0);
-        double totalService = servicePointTotalTime.getOrDefault(type, 0.0);
+    private void updateServicePointStats(ServicePointType type, Label customers, Label avgService, Label utilization) {
+        int served = servicePointCustomerCount.get(type);
+        double totalServiceTime = servicePointServiceTime.get(type);
+        double totalTime = Clock.getInstance().getTime();
 
-        customers.setText(String.valueOf(count));
-        avgService.setText(count > 0 ? String.format("%.2f", totalService / count) : "0.00");
-        utilization.setText(currentTime > 0 ? String.format("%.0f%%", (totalService / currentTime) * 100) : "0%");
+        customers.setText(String.valueOf(served));
+        avgService.setText(served > 0 ? String.format("%.2f", totalServiceTime / served) : "0.00");
+        utilization.setText(totalTime > 0 ? String.format("%.0f%%", (totalServiceTime / totalTime) * 100) : "0%");
     }
 }
