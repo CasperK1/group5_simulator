@@ -3,11 +3,9 @@ package view;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.text.TextAlignment;
 import simu.model.CustomerType;
 import simu.model.CustomerVisual;
 import simu.model.ServicePointType;
@@ -105,7 +103,6 @@ public class Visualisation extends Canvas implements IVisualisation {
         final int ICON_SIZE = 24;
         final int PADDING = 10;
         final Font TITLE_FONT = Font.font("Arial", FontWeight.BOLD, 14);
-        final Font LABEL_FONT = Font.font("Arial", FontWeight.NORMAL, 12);
 
         for (Map.Entry<ServicePointType, Rectangle2D> entry : servicePoints.entrySet()) {
             ServicePointType type = entry.getKey();
@@ -200,11 +197,25 @@ public class Visualisation extends Canvas implements IVisualisation {
      * @param type The service point type whose queue size should be incremented
      */
     public void incrementQueueSize(ServicePointType type) {
+        // Only increment express checkout queue for express customers
+        if (type == ServicePointType.EXPRESS_CHECKOUT) {
+            // Find the last customer that was moved to express checkout
+            CustomerVisual lastCustomer = customers.values().stream()
+                    .filter(c -> c.getLocation() == ServicePointType.EXPRESS_CHECKOUT)
+                    .reduce((first, second) -> second)
+                    .orElse(null);
+
+            if (lastCustomer == null || lastCustomer.getType() != CustomerType.EXPRESS) {
+                return; // Don't increment queue if it's not an express customer
+            }
+        }
+
         int size = queueSizes.getOrDefault(type, 0);
         size++;
         queueSizes.put(type, size);
         clearDisplay();
     }
+
 
     /**
      * Decrements the queue size for a service point and updates the display.
@@ -215,10 +226,10 @@ public class Visualisation extends Canvas implements IVisualisation {
         int size = queueSizes.getOrDefault(type, 0);
         if (size > 0) {
             size--;
-        }
-        queueSizes.put(type, size);
-        clearDisplay();
-    }
+            queueSizes.put(type, size);
+            clearDisplay();
+        }}
+
 
     /**
      * Formats a service point type name for display.
@@ -304,9 +315,15 @@ public class Visualisation extends Canvas implements IVisualisation {
      * @param from The service point the customer is moving from
      * @param to The service point the customer is moving to
      */
+
     public void moveCustomer(int customerId, ServicePointType from, ServicePointType to) {
         CustomerVisual customer = customers.get(customerId);
         if (customer != null) {
+            // Prevent regular customers from being displayed in express checkout
+            if (to == ServicePointType.EXPRESS_CHECKOUT && customer.getType() != CustomerType.EXPRESS) {
+                return; // Don't visualize invalid movements
+            }
+
             customer.setLocation(to);
             placeCustomerAtServicePoint(customer, to);
             clearDisplay();
@@ -321,19 +338,5 @@ public class Visualisation extends Canvas implements IVisualisation {
     public void removeCustomer(int customerId) {
         customers.remove(customerId);
         clearDisplay();
-    }
-
-    /**
-     * Updates the number of items a customer has.
-     *
-     * @param customerId The ID of the customer to update
-     * @param items The new item count
-     */
-    public void updateCustomerItems(int customerId, int items) {
-        CustomerVisual customer = customers.get(customerId);
-        if (customer != null) {
-            customer.setItems(items);
-            clearDisplay();
-        }
     }
 }
