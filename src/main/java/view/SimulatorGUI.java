@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import simu.data.SimulationConfig;
@@ -40,7 +41,11 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
                 System.exit(0);
             });
 
-			primaryStage.setTitle("Simulator");
+			primaryStage.setTitle("Checkout Simulator");
+			String imagePath = "/customer.jpg";
+			if (getClass().getResource(imagePath) != null) {
+				primaryStage.getIcons().add(new Image(getClass().getResource(imagePath).toExternalForm()));
+			}
 
 			// Load the FXML file
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/SimulatorGUI.fxml"));
@@ -71,7 +76,6 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
 			scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
 			primaryStage.setScene(scene);
 			primaryStage.setResizable(false);
-			primaryStage.setScene(scene);
 			primaryStage.show();
 		} catch(Exception e) {
 			e.printStackTrace();
