@@ -3,14 +3,18 @@ package controller;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import simu.data.ConfigManager;
 import simu.framework.IEngine;
 import simu.model.*;
 import view.ISimulatorUI;
-import view.SimulatorGUI;
 import view.Visualisation;
 import simu.data.SimulationConfig;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -52,7 +56,7 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML private TextField expressMultiplier;
     @FXML private TextField selfCheckoutMultiplier;
     @FXML private TextField configNameField;
-
+    @FXML private ComboBox<String> savedConfigsCombo;
     // Customer tracking for visualization
     private Map<Integer, Customer> activeCustomers = new ConcurrentHashMap<>();
     private Map<ServicePointType, Integer> queueSizes = new ConcurrentHashMap<>();
@@ -68,6 +72,7 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
             queueSizes.put(type, 0);
         }
         initializeConfigControls();
+        loadSavedConfigList();
     }
 
     private void initializeConfigControls() {
@@ -278,35 +283,9 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         paused = false;
     }
 
-
     /**
-     * Saves the current simulation configuration.
-     * Currently shows an alert that configuration is saved without actual database storage.
+     * Config alert dialog to show messages to the user.
      */
-    @FXML
-    public void saveConfiguration() {
-        // For now, just show an alert that config is saved (without DB)
-        String name = configNameField.getText();
-        if (name == null || name.trim().isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Warning",
-                    "Please enter a configuration name.");
-            return;
-        }
-
-        showAlert(Alert.AlertType.INFORMATION, "Configuration Saved",
-                "Configuration '" + name + "' has been saved.");
-    }
-
-    /**
-     * Loads a saved simulation configuration.
-     * Currently a placeholder that shows an alert message.
-     */
-    @FXML
-    public void loadConfiguration() {
-        // placeholder message
-        showAlert(Alert.AlertType.INFORMATION, "Load Configuration",
-                "This feature will be implemented");
-    }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
@@ -315,6 +294,188 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
+    /**
+     * Loads the list of saved configurations and populates the ComboBox.
+     */
+    private void loadSavedConfigList() {
+        try {
+            List<String> configNames = ConfigManager.getSavedConfigurationNames();
+            savedConfigsCombo.getItems().clear();
+            savedConfigsCombo.getItems().addAll(configNames);
+
+            if (!configNames.isEmpty()) {
+                savedConfigsCombo.setPromptText("Select a configuration");
+            } else {
+                savedConfigsCombo.setPromptText("No saved configurations");
+            }
+        } catch (IOException e) {
+            System.err.println("Error loading configuration list: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error",
+                    "Failed to load saved configurations: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Updates the UI controls to reflect the current configuration.
+     */
+    private void updateUIFromConfig() {
+        // Arrival settings
+        arrivalDistributionCombo.setValue(config.getArrivalDistribution());
+        arrivalParamField.setText(String.valueOf(config.getArrivalParam()));
+
+        // Customer parameters
+        expressCustomerSlider.setValue(config.getExpressCustomerPercentage());
+        expressPercentLabel.setText(String.format("%.0f%%", config.getExpressCustomerPercentage()));
+        minRegularItems.setText(String.valueOf(config.getMinRegularItems()));
+        maxRegularItems.setText(String.valueOf(config.getMaxRegularItems()));
+        minExpressItems.setText(String.valueOf(config.getMinExpressItems()));
+        maxExpressItems.setText(String.valueOf(config.getMaxExpressItems()));
+
+        // Service point parameters
+        serviceDistributionCombo.setValue(config.getServiceDistribution());
+        serviceParamField.setText(String.valueOf(config.getServiceParam()));
+        shoppingMultiplier.setText(String.valueOf(config.getShoppingMultiplier()));
+        regularMultiplier.setText(String.valueOf(config.getRegularMultiplier()));
+        expressMultiplier.setText(String.valueOf(config.getExpressMultiplier()));
+        selfCheckoutMultiplier.setText(String.valueOf(config.getSelfCheckoutMultiplier()));
+
+        // Default values
+        delayField.setText(String.valueOf(config.getDefaultDelay()));
+    }
+
+    /**
+     * Saves the current simulation configuration.
+     * Saves the configuration to a properties file with the specified name.
+     */
+    @FXML
+    public void saveConfiguration() {
+        String name = configNameField.getText();
+        if (name == null || name.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Warning",
+                    "Please enter a configuration name.");
+            return;
+        }
+
+        // Check if configuration already exists
+        try {
+            List<String> existingConfigs = ConfigManager.getSavedConfigurationNames();
+            if (existingConfigs.contains(name)) {
+                // Confirm overwrite
+                Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                confirmAlert.setTitle("Confirm Overwrite");
+                confirmAlert.setHeaderText("Configuration already exists");
+                confirmAlert.setContentText("Do you want to overwrite the existing configuration '" + name + "'?");
+
+                Optional<ButtonType> result = confirmAlert.showAndWait();
+                if (result.isPresent() && result.get() != ButtonType.OK) {
+                    return;
+                }
+            }
+
+            // Save configuration
+            ConfigManager.saveConfiguration(config, name);
+
+            // Refresh the list of saved configurations
+            loadSavedConfigList();
+
+            // Select the newly saved configuration
+            savedConfigsCombo.setValue(name);
+
+            showAlert(Alert.AlertType.INFORMATION, "Configuration Saved",
+                    "Configuration '" + name + "' has been saved successfully.");
+
+        } catch (IOException e) {
+            System.err.println("Error saving configuration: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error",
+                    "Failed to save configuration: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Loads a saved simulation configuration.
+     * Loads the configuration selected in the ComboBox.
+     */
+    @FXML
+    public void loadConfiguration() {
+        String selectedConfig = savedConfigsCombo.getValue();
+        if (selectedConfig == null || selectedConfig.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "No Configuration Selected",
+                    "Please select a configuration to load.");
+            return;
+        }
+
+        try {
+            // Load the selected configuration
+            SimulationConfig loadedConfig = ConfigManager.loadConfiguration(selectedConfig);
+
+            // Set the loaded configuration as current
+            for (var field : loadedConfig.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+                try {
+                    var value = field.get(loadedConfig);
+                    field.set(config, value);
+                } catch (IllegalAccessException e) {
+                    System.err.println("Error copying field " + field.getName() + ": " + e.getMessage());
+                }
+            }
+
+            // Update the UI to reflect the loaded configuration
+            updateUIFromConfig();
+
+            // Update the config name field
+            configNameField.setText(selectedConfig);
+
+            showAlert(Alert.AlertType.INFORMATION, "Configuration Loaded",
+                    "Configuration '" + selectedConfig + "' has been loaded successfully.");
+
+        } catch (FileNotFoundException e) {
+            System.err.println("Configuration file not found: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error",
+                    "Configuration file not found: " + selectedConfig);
+            // Refresh the list to remove the missing configuration
+            loadSavedConfigList();
+        } catch (IOException e) {
+            System.err.println("Error loading configuration: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error",
+                    "Failed to load configuration: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Deletes the selected configuration.
+     */
+    @FXML
+    public void deleteConfiguration() {
+        String selectedConfig = savedConfigsCombo.getValue();
+        if (selectedConfig == null || selectedConfig.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "No Configuration Selected",
+                    "Please select a configuration to delete.");
+            return;
+        }
+
+        // Confirm deletion
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Confirm Deletion");
+        confirmAlert.setHeaderText("Delete Configuration");
+        confirmAlert.setContentText("Are you sure you want to delete the configuration '" + selectedConfig + "'?");
+
+        Optional<ButtonType> result = confirmAlert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            boolean deleted = ConfigManager.deleteConfiguration(selectedConfig);
+
+            if (deleted) {
+                // Refresh the list of saved configurations
+                loadSavedConfigList();
+                showAlert(Alert.AlertType.INFORMATION, "Configuration Deleted",
+                        "Configuration '" + selectedConfig + "' has been deleted successfully.");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error",
+                        "Failed to delete configuration '" + selectedConfig + "'.");
+            }
+        }
+    }
+
 
     /**
      * Gets the current simulation configuration.
