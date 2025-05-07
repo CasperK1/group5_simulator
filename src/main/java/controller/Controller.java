@@ -2,17 +2,23 @@ package controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import simu.data.ConfigManager;
+import simu.framework.Clock;
 import simu.framework.IEngine;
 import simu.model.*;
 import view.ISimulatorUI;
+import view.SimulatorGUI;
 import view.Visualisation;
 import simu.data.SimulationConfig;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,6 +46,31 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML private Button speedUpButton;
     @FXML private Button getResetButton;
 
+    // FXML Statistics components
+    @FXML private Label totalCustomersLabel;
+    @FXML private Label avgWaitTimeLabel;
+    @FXML private Label maxQueueLabel;
+
+    @FXML private Label entranceCustomersLabel;
+    @FXML private Label shoppingCustomersLabel;
+    @FXML private Label regularCustomersLabel;
+    @FXML private Label expressCustomersLabel;
+    @FXML private Label selfCheckoutCustomersLabel;
+    @FXML private Label selfCheckoutServiceTimeLabel;
+    @FXML private Label selfCheckoutUtilizationLabel;
+
+    @FXML private Label entranceServiceTimeLabel;
+    @FXML private Label shoppingServiceTimeLabel;
+    @FXML private Label regularServiceTimeLabel;
+    @FXML private Label expressServiceTimeLabel;
+
+    @FXML private Label entranceUtilizationLabel;
+    @FXML private Label shoppingUtilizationLabel;
+    @FXML private Label regularUtilizationLabel;
+    @FXML private Label expressUtilizationLabel;
+
+    @FXML private LineChart<Number, Number> queueLengthChart;
+
     // Configuration tab fields
     @FXML private ComboBox<String> arrivalDistributionCombo;
     @FXML private TextField arrivalParamField;
@@ -57,9 +88,18 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML private TextField selfCheckoutMultiplier;
     @FXML private TextField configNameField;
     @FXML private ComboBox<String> savedConfigsCombo;
+
+    // Line Chart
+    private XYChart.Series<Number, Number> queueLengthSeries = new XYChart.Series<>();
+
     // Customer tracking for visualization
     private Map<Integer, Customer> activeCustomers = new ConcurrentHashMap<>();
     private Map<ServicePointType, Integer> queueSizes = new ConcurrentHashMap<>();
+    private Map<ServicePointType, Integer> servicePointCustomerCount = new HashMap<>();
+    private Map<ServicePointType, Double> servicePointServiceTime = new HashMap<>();
+
+
+    private int maxQueueLength = 0;
 
     /**
      * Initializes the controller.
@@ -70,9 +110,15 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         // Initialize queue sizes
         for (ServicePointType type : ServicePointType.values()) {
             queueSizes.put(type, 0);
+            servicePointCustomerCount.put(type, 0);
+            servicePointServiceTime.put(type, 0.0);
         }
         initializeConfigControls();
         loadSavedConfigList();
+
+        queueLengthSeries = new XYChart.Series<>();
+        queueLengthSeries.setName("Queue Length");
+        queueLengthChart.getData().add(queueLengthSeries);
     }
 
     private void initializeConfigControls() {
@@ -183,7 +229,12 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         activeCustomers.clear();
         for (ServicePointType type : ServicePointType.values()) {
             queueSizes.put(type, 0);
+            servicePointCustomerCount.put(type, 0);
+            servicePointServiceTime.put(type, 0.0);
         }
+        queueLengthSeries.getData().clear();
+        maxQueueLength = 0;
+        Customer.resetStatistics();
 
         // Update button states
         startButton.setDisable(true);
@@ -350,6 +401,7 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
      */
     @FXML
     public void saveConfiguration() {
+        // For now, just show an alert that config is saved (without DB)
         String name = configNameField.getText();
         if (name == null || name.trim().isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Warning",
@@ -534,14 +586,62 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
      */
     @Override
     public void customerMoved(int customerId, ServicePointType from, ServicePointType to) {
-        Platform.runLater(() -> {
-            if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
-                vis.moveCustomer(customerId, from, to);
-                if (queueSizes.containsKey(to)) {
-                    vis.incrementQueueSize(to);
-                }
+        Customer customer = activeCustomers.get(customerId);
+
+        if (customer != null) {
+            // Record timestamps for statistics
+            double now = Clock.getInstance().getTime();
+
+            // Start shopping timer when customer enters shopping
+            if (to == ServicePointType.SHOPPING) {
+                customer.startShopping();
             }
-        });
+
+            // Track entrance service time when leaving entrance
+            if (from == ServicePointType.ENTRANCE && to == ServicePointType.SHOPPING) {
+                double entranceTime = now - customer.getArrivalTime();
+                servicePointCustomerCount.merge(from, 1, Integer::sum);
+                servicePointServiceTime.merge(from, entranceTime, Double::sum);
+            }
+
+            // End shopping and start checkout when moving to any checkout type
+            if (from == ServicePointType.SHOPPING &&
+                    (to == ServicePointType.REGULAR_CHECKOUT ||
+                            to == ServicePointType.EXPRESS_CHECKOUT ||
+                            to == ServicePointType.SELF_CHECKOUT)) {
+
+                customer.endShopping();
+                customer.startCheckout();
+
+                double shoppingTime = customer.getShoppingDuration();
+                servicePointCustomerCount.merge(from, 1, Integer::sum);
+                servicePointServiceTime.merge(from, shoppingTime, Double::sum);
+            }
+
+
+            // UI & chart updates
+            Platform.runLater(() -> {
+                if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
+                    vis.moveCustomer(customerId, from, to);
+
+                    queueSizes.merge(to, 1, Integer::sum);
+                    queueSizes.merge(from, -1, (oldValue, value) -> Math.max(0, oldValue + value));
+
+                    vis.incrementQueueSize(to);
+                    vis.decrementQueueSize(from); // <-- crucial to restore visual state
+
+                    int totalQueue = totalQueueLength();
+                    if (totalQueue > maxQueueLength) {
+                        maxQueueLength = totalQueue;
+                    }
+
+                    double currentTime = Clock.getInstance().getTime();
+                    queueLengthSeries.getData().add(new XYChart.Data<>(currentTime, totalQueue));
+
+                    updateStatistics();
+                }
+            });
+        }
     }
 
     /**
@@ -553,15 +653,74 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
      */
     @Override
     public void customerCompleted(int customerId, ServicePointType type) {
-        // Update visualization
+        Customer customer = activeCustomers.remove(customerId);
+        if (customer != null) {
+            double now = Clock.getInstance().getTime();
+            customer.setRemovalTime(now);
+
+            customer.reportResults();
+
+            // Calculate service duration depending on location
+            double duration = 0.0;
+            switch (type) {
+                case REGULAR_CHECKOUT:
+                case EXPRESS_CHECKOUT:
+                case SELF_CHECKOUT: // ✅ Add this
+                    duration = customer.getCheckoutDuration();
+                    break;
+                case SHOPPING:
+                    duration = customer.getShoppingDuration();
+                    break;
+            }
+
+            servicePointCustomerCount.merge(type, 1, Integer::sum);
+            servicePointServiceTime.merge(type, duration, Double::sum);
+
+            updateStatistics();
+        }
+
+        // UI cleanup
         Platform.runLater(() -> {
             if (ui != null && ui.getVisualisation() instanceof Visualisation vis) {
                 vis.removeCustomer(customerId);
-                if (queueSizes.containsKey(type)) {
-                    vis.decrementQueueSize(type);
-                }
+                queueSizes.merge(type, -1, (oldValue, value) -> Math.max(0, oldValue + value));
+                vis.decrementQueueSize(type); // <-- add this after updating queue size
             }
         });
     }
 
+
+
+    private int totalQueueLength() {
+        return queueSizes.values().stream().mapToInt(Integer::intValue).sum();
+    }
+
+    private void updateStatistics() {
+        Platform.runLater(() -> {
+            totalCustomersLabel.setText(String.valueOf(Customer.getLatestCustomerId()));
+            avgWaitTimeLabel.setText(String.format("%.2f", Customer.getMeanServiceTime()));
+            maxQueueLabel.setText(String.valueOf(maxQueueLength));
+
+            updateServicePointStats(ServicePointType.ENTRANCE, entranceCustomersLabel, entranceServiceTimeLabel, entranceUtilizationLabel);
+            updateServicePointStats(ServicePointType.SHOPPING, shoppingCustomersLabel, shoppingServiceTimeLabel, shoppingUtilizationLabel);
+            updateServicePointStats(ServicePointType.REGULAR_CHECKOUT, regularCustomersLabel, regularServiceTimeLabel, regularUtilizationLabel);
+            updateServicePointStats(ServicePointType.EXPRESS_CHECKOUT, expressCustomersLabel, expressServiceTimeLabel, expressUtilizationLabel);
+            updateServicePointStats(ServicePointType.SELF_CHECKOUT, selfCheckoutCustomersLabel, selfCheckoutServiceTimeLabel, selfCheckoutUtilizationLabel); // <-- ADD THIS
+        });
+    }
+
+
+    private void updateServicePointStats(ServicePointType type, Label customers, Label avgService, Label utilization) {
+        // Live customer count at the service point
+        int currentCount = queueSizes.getOrDefault(type, 0);
+
+        // Completed customer stats
+        int completed = servicePointCustomerCount.getOrDefault(type, 0);
+        double totalServiceTime = servicePointServiceTime.getOrDefault(type, 0.0);
+        double totalTime = Clock.getInstance().getTime();
+
+        customers.setText(String.valueOf(currentCount));
+        avgService.setText(completed > 0 ? String.format("%.2f", totalServiceTime / completed) : "0.00");
+        utilization.setText(totalTime > 0 ? String.format("%.0f%%", (totalServiceTime / totalTime) * 100) : "0%");
+    }
 }

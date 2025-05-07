@@ -133,15 +133,12 @@
                                                 <Label text="Total Customers:"/>
                                                 <Label fx:id="totalCustomersLabel" text="0" GridPane.columnIndex="1"/>
                                                 <Label text="Average Wait Time:" GridPane.rowIndex="1"/>
-                                                <Label fx:id="avgWaitTimeLabel" text="0.00" GridPane.columnIndex="1"
-                                                       GridPane.rowIndex="1"/>
+                                                <Label fx:id="avgWaitTimeLabel" text="0.00" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                                                 <Label text="Maximum Queue Length:" GridPane.rowIndex="2"/>
-                                                <Label fx:id="maxQueueLabel" text="0" GridPane.columnIndex="1"
-                                                       GridPane.rowIndex="2"/>
+                                                <Label fx:id="maxQueueLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
                                             </children>
                                         </GridPane>
-                                        <TitledPane animated="false" collapsible="true" expanded="false"
-                                                    text="Service Point Details">
+                                        <TitledPane animated="false" collapsible="true" expanded="false" text="Service Point Details">
                                             <content>
                                                 <GridPane fx:id="servicePointStatsGrid" hgap="10.0" vgap="10.0">
                                                     <columnConstraints>
@@ -167,41 +164,38 @@
                                                                         vgrow="SOMETIMES"/>
                                                     </rowConstraints>
                                                     <padding>
-                                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                                                        <Insets top="10.0" bottom="10.0" left="10.0" right="10.0"/>
                                                     </padding>
                                                     <children>
                                                         <Label text="Service Point"/>
                                                         <Label text="Customers" GridPane.columnIndex="1"/>
                                                         <Label text="Avg. Service Time" GridPane.columnIndex="2"/>
                                                         <Label text="Utilization" GridPane.columnIndex="3"/>
+
                                                         <Label text="Entrance" GridPane.rowIndex="1"/>
+                                                        <Label fx:id="entranceCustomersLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                                        <Label fx:id="entranceServiceTimeLabel" text="0.00" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                                                        <Label fx:id="entranceUtilizationLabel" text="0%" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+
                                                         <Label text="Shopping" GridPane.rowIndex="2"/>
-                                                        <Label text="Regular Checkout" GridPane.rowIndex="3"/>
-                                                        <Label text="Express Checkout" GridPane.rowIndex="4"/>
-                                                        <Label fx:id="entranceCustomersLabel" text="0"
-                                                               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                                                        <Label fx:id="shoppingCustomersLabel" text="0"
-                                                               GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-                                                        <Label fx:id="regularCustomersLabel" text="0"
-                                                               GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-                                                        <Label fx:id="expressCustomersLabel" text="0"
-                                                               GridPane.columnIndex="1" GridPane.rowIndex="4"/>
-                                                        <Label fx:id="entranceServiceTimeLabel" text="0.00"
-                                                               GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-                                                        <Label fx:id="shoppingServiceTimeLabel" text="0.00"
-                                                               GridPane.columnIndex="2" GridPane.rowIndex="2"/>
-                                                        <Label fx:id="regularServiceTimeLabel" text="0.00"
-                                                               GridPane.columnIndex="2" GridPane.rowIndex="3"/>
-                                                        <Label fx:id="expressServiceTimeLabel" text="0.00"
-                                                               GridPane.columnIndex="2" GridPane.rowIndex="4"/>
-                                                        <Label fx:id="entranceUtilizationLabel" text="0%"
-                                                               GridPane.columnIndex="3" GridPane.rowIndex="1"/>
-                                                        <Label fx:id="shoppingUtilizationLabel" text="0%"
-                                                               GridPane.columnIndex="3" GridPane.rowIndex="2"/>
-                                                        <Label fx:id="regularUtilizationLabel" text="0%"
-                                                               GridPane.columnIndex="3" GridPane.rowIndex="3"/>
-                                                        <Label fx:id="expressUtilizationLabel" text="0%"
-                                                               GridPane.columnIndex="3" GridPane.rowIndex="4"/>
+                                                        <Label fx:id="shoppingCustomersLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                                        <Label fx:id="shoppingServiceTimeLabel" text="0.00" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+                                                        <Label fx:id="shoppingUtilizationLabel" text="0%" GridPane.columnIndex="3" GridPane.rowIndex="2"/>
+
+                                                        <Label text="Self Checkout" GridPane.rowIndex="3"/>
+                                                        <Label fx:id="selfCheckoutCustomersLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                                                        <Label fx:id="selfCheckoutServiceTimeLabel" text="0.00" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+                                                        <Label fx:id="selfCheckoutUtilizationLabel" text="0%" GridPane.columnIndex="3" GridPane.rowIndex="3"/>
+
+                                                        <Label text="Regular Checkout" GridPane.rowIndex="4"/>
+                                                        <Label fx:id="regularCustomersLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+                                                        <Label fx:id="regularServiceTimeLabel" text="0.00" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
+                                                        <Label fx:id="regularUtilizationLabel" text="0%" GridPane.columnIndex="3" GridPane.rowIndex="4"/>
+
+                                                        <Label text="Express Checkout" GridPane.rowIndex="5"/>
+                                                        <Label fx:id="expressCustomersLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+                                                        <Label fx:id="expressServiceTimeLabel" text="0.00" GridPane.columnIndex="2" GridPane.rowIndex="5"/>
+                                                        <Label fx:id="expressUtilizationLabel" text="0%" GridPane.columnIndex="3" GridPane.rowIndex="5"/>
                                                     </children>
                                                 </GridPane>
                                             </content>
