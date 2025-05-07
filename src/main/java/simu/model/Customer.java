@@ -249,7 +249,7 @@ public class Customer {
 		totalCustomers = 0;
 	}
 	public static int getLatestCustomerId() {
-		return i;
+		return i -1;
 	}
 
 }
