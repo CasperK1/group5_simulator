@@ -4,11 +4,9 @@ import java.text.DecimalFormat;
 import controller.*;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import simu.data.SimulationConfig;
 import simu.framework.Trace;
 import simu.framework.Trace.Level;
@@ -18,15 +16,17 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
 public class SimulatorGUI extends Application implements ISimulatorUI {
+	private boolean inResetState = false;
+
 	// Controller object (UI needs)
 	private IControllerVtoM controller;
 	// UI Components:
 	private TextField time;
 	private TextField delay;
 	private Label results;
+	private Label timeLeftLabel;
 
 	private IVisualisation display;
-
 
 	@Override
 	public void init(){
@@ -37,9 +37,9 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
 	public void start(Stage primaryStage) {
 		try {
 			primaryStage.setOnCloseRequest(t -> {
-                Platform.exit();
-                System.exit(0);
-            });
+				Platform.exit();
+				System.exit(0);
+			});
 
 			primaryStage.setTitle("Checkout Simulator");
 			String imagePath = "/customer.jpg";
@@ -63,6 +63,7 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
 			SimulationConfig config = controller.getConfig();
 			delay.setText(String.valueOf(config.getDefaultDelay()));
 			results = (Label) root.lookup("#resultsLabel");
+			timeLeftLabel = (Label) root.lookup("#timeLeftLabel");
 
 			// Set up visualization
 			StackPane visualizationContainer = (StackPane) root.lookup("#visualizationContainer");
@@ -93,15 +94,30 @@ public class SimulatorGUI extends Application implements ISimulatorUI {
 		return Long.parseLong(delay.getText());
 	}
 
-	@Override
-	public void setEndingTime(double time) {
-		DecimalFormat formatter = new DecimalFormat("#0.00");
-		this.results.setText(formatter.format(time));
-	}
 
 	@Override
 	public IVisualisation getVisualisation() {
 		return display;
+	}
+
+	/**
+	 * Updates the time left display with the estimated remaining time.
+	 *
+	 * @param secondsLeft Estimated seconds left, or -1 if still calculating
+	 */
+	@Override
+	public void updateTimeLeft(int secondsLeft) {
+		Platform.runLater(() -> {
+			 if (secondsLeft == 0) {
+				timeLeftLabel.setText("Complete");
+			} else if (secondsLeft == -1) {
+				timeLeftLabel.setText("Waiting...");
+			 } else {
+				int minutes = secondsLeft / 60;
+				int seconds = secondsLeft % 60;
+				timeLeftLabel.setText(String.format("%d:%02d", minutes, seconds));
+			}
+		});
 	}
 
 	/* JavaFX-application (UI) start-up */

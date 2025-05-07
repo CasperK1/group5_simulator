@@ -232,40 +232,4 @@ public class MyEngine extends Engine {
         controller.showEndTime(Clock.getInstance().getTime());
     }
 
-
-    public void setPaused(boolean paused) {
-        synchronized (this) {
-            this.paused = paused;
-            if (!paused) {
-                notify(); // Resume simulation when it's unpaused
-            }
-        }
-    }
-
-    /**
-     * Resets the simulation engine to its initial state.
-     * Clears all service points, resets the clock and event list.
-     */
-    public void reset() {
-        // Reset clock
-        Clock.getInstance().setTime(0);
-
-        // Clear all service points
-        for (ServicePoint sp : servicePoints) {
-            if (sp != null) {
-                sp.reset();
-            }
-        }
-
-        // Clear the event list
-        eventList.clear();
-
-        // Optionally: regenerate the arrival process
-        arrivalProcess.reset(); // <-- only if you implement this method in ArrivalProcess
-
-        // Reset paused state
-        paused = false;
-    }
-
-
 }

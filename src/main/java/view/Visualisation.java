@@ -263,16 +263,6 @@ public class Visualisation extends Canvas implements IVisualisation {
     }
 
     /**
-     * Creates a new customer in the visualization.
-     * Legacy method implementation from IVisualisation interface.
-     */
-    @Override
-    public void newCustomer() {
-        int newId = customers.size() + 1;
-        addNewCustomer(newId, CustomerType.REGULAR, 15, ServicePointType.ENTRANCE);
-    }
-
-    /**
      * Adds a new customer to the visualization.
      *
      * @param id The customer's unique ID

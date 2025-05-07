@@ -4,4 +4,5 @@ eduni.distributions
 simu.data
 simu.framework
 simu.model
+utils
 view

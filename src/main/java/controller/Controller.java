@@ -42,9 +42,6 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
     @FXML private Button startButton;
     @FXML private Button pauseButton;
     @FXML private Button resumeButton;
-    @FXML private Button slowButton;
-    @FXML private Button speedUpButton;
-    @FXML private Button getResetButton;
 
     // FXML Statistics components
     @FXML private Label totalCustomersLabel;
@@ -309,7 +306,6 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         if (engine != null) {
             engine.reset(); // call reset on engine and everything inside (event list, clock, etc.)
         }
-
         activeCustomers.clear(); // clear customer tracking
         Customer.resetStatistics();
         // Reset queue sizes
@@ -549,6 +545,17 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         Platform.runLater(() -> {
             resultsLabel.setText(String.format("%.2f", time));
         });
+    }
+
+    /**
+     * Updates the time left display in the UI.
+     * Called by the engine to provide real-time estimates.
+     *
+     * @param secondsLeft Estimated seconds left, or -1 if still calculating
+     */
+    @Override
+    public void updateTimeLeft(int secondsLeft) {
+        ui.updateTimeLeft(secondsLeft);
     }
 
     /**

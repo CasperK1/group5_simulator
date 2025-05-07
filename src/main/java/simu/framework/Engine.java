@@ -2,6 +2,8 @@ package simu.framework;
 
 import controller.IControllerMtoV;
 import simu.model.ServicePoint;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Abstract base class for the simulation engine.
@@ -9,189 +11,233 @@ import simu.model.ServicePoint;
  * Implements the IEngine interface to provide control over the simulation.
  */
 public abstract class Engine extends Thread implements IEngine {
-	private double simulationTime = 0;
-	private long delay = 0;
-	private Clock clock;
-	private boolean paused = false;
+    private double simulationTime = 0;
+    private long delay = 0;
+    private Clock clock;
+    private boolean paused = false;
+    private Timer timeLeftTimer;
+    private static final int TIME_UPDATE_INTERVAL = 1000; // Update time left every second
 
-	protected EventList eventList;
-	protected ServicePoint[] servicePoints;
-	protected IControllerMtoV controller;
+    protected EventList eventList;
+    protected ServicePoint[] servicePoints;
+    protected IControllerMtoV controller;
 
-	/**
-	 * Constructs a new Engine with the specified controller.
-	 *
-	 * @param controller The controller that mediates between the model and view
-	 */
-	public Engine(IControllerMtoV controller) {
-		this.controller = controller;
-		clock = Clock.getInstance();
-		eventList = new EventList();
-	}
+    /**
+     * Constructs a new Engine with the specified controller.
+     *
+     * @param controller The controller that mediates between the model and view
+     */
+    public Engine(IControllerMtoV controller) {
+        this.controller = controller;
+        clock = Clock.getInstance();
+        eventList = new EventList();
+    }
 
-	/**
-	 * Sets the total simulation time.
-	 *
-	 * @param time The duration of the simulation
-	 */
-	@Override
-	public void setSimulationTime(double time) {
-		simulationTime = time;
-	}
+    /**
+     * Sets the total simulation time.
+     *
+     * @param time The duration of the simulation
+     */
+    @Override
+    public void setSimulationTime(double time) {
+        simulationTime = time;
+    }
 
-	/**
-	 * Sets the delay between simulation steps for visualization.
-	 *
-	 * @param time The delay in milliseconds
-	 */
-	@Override
-	public void setDelay(long time) {
-		this.delay = time;
-	}
+    /**
+     * Sets the delay between simulation steps for visualization.
+     *
+     * @param time The delay in milliseconds
+     */
+    @Override
+    public void setDelay(long time) {
+        this.delay = time;
+    }
 
-	/**
-	 * Gets the current delay between simulation steps.
-	 *
-	 * @return The current delay in milliseconds
-	 */
-	@Override
-	public long getDelay() {
-		return delay;
-	}
+    /**
+     * Gets the current delay between simulation steps.
+     *
+     * @return The current delay in milliseconds
+     */
+    @Override
+    public long getDelay() {
+        return delay;
+    }
 
-	/**
-	 * Sets the paused state of the simulation.
-	 *
-	 * @param paused True to pause the simulation, false to resume
-	 */
-	@Override
-	public void setPaused(boolean paused) {
-		this.paused = paused;
-	}
+    /**
+     * Sets the paused state of the simulation.
+     *
+     * @param paused True to pause the simulation, false to resume
+     */
+    @Override
+    public void setPaused(boolean paused) {
+        this.paused = paused;
+    }
 
-	/**
-	 * Checks if the simulation is currently paused.
-	 *
-	 * @return True if the simulation is paused, false otherwise
-	 */
-	@Override
-	public boolean isPaused() {
-		return paused;
-	}
+    /**
+     * Runs the simulation.
+     * Initializes the simulation, processes events, and produces results.
+     */
+    @Override
+    public void run() {
+        startTimeLeftCounter();
+        initialization();
+        while (simulate()){
+            while (paused) {
+                try {
+                    sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
 
-	/**
-	 * Runs the simulation.
-	 * Initializes the simulation, processes events, and produces results.
-	 */
-	@Override
-	public void run() {
-		initialization();
-		while (simulate()){
-			while (paused) {
-				try {
-					sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
+            delay();
+            clock.setTime(currentTime());
+            runBEvents();
+            tryCEvents();
+        }
 
-			delay();
-			clock.setTime(currentTime());
-			runBEvents();
-			tryCEvents();
-		}
+        stopTimeLeftCounter();
+        controller.updateTimeLeft(0);
+        results();
+    }
 
-		results();
-	}
+    /**
+     * Starts a timer to update the UI with the estimated time left
+     */
+    private void startTimeLeftCounter() {
+        timeLeftTimer = new Timer(true);
+        timeLeftTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                updateTimeLeft();
+            }
+        }, 0, TIME_UPDATE_INTERVAL);
+    }
 
-	public void reset() {
-		// Reset the simulation time
-		simulationTime = 0;
+    /**
+     * Stops the time left counter
+     */
+    private void stopTimeLeftCounter() {
+        if (timeLeftTimer != null) {
+            timeLeftTimer.cancel();
+            timeLeftTimer.purge();
+            timeLeftTimer = null;
+        }
+    }
 
-		// Reset the event list (clear any remaining events)
-		eventList.clear(); // If using PriorityQueue, clear it
+    /**
+     * Updates the UI with the estimated time left
+     * Uses a simple formula based on current time, total time, and delay
+     */
+    private void updateTimeLeft() {
+        if (paused || simulationTime <= 0) {
+            return;
+        }
+        // remaining events * delay per event
+        double remainingSimTime = simulationTime - clock.getTime();
+        if (remainingSimTime <= 0) {
+            controller.updateTimeLeft(0);
+            return;
+        }
 
-		// Reset paused state
-		paused = false;
+        // Estimate time left in seconds based on delay
+        int secondsLeft = (int)((remainingSimTime * delay) / 1000);
+        controller.updateTimeLeft(secondsLeft);
+    }
 
-		// Optionally, reset the clock or service points if necessary
-		clock.setTime(0);
+    /**
+     * Resets the simulation engine to its initial state.
+     * Stops the time left counter and resets various components.
+     */
+    public void reset() {
+        // Stop the time left counter and reset the UI
+        stopTimeLeftCounter();
+        controller.updateTimeLeft(-1);
 
-		// Reinitialize service points if needed
-		for (ServicePoint sp : servicePoints) {
-			sp.reset(); // Assuming you have a reset method in ServicePoint
-		}
-	}
+        // Reset the simulation time
+        simulationTime = 0;
 
-	/**
-	 * Processes all B-phase events scheduled for the current time.
-	 */
-	private void runBEvents() {
-		while (eventList.getNextTime() == clock.getTime()){
-			runEvent(eventList.remove());
-		}
-	}
+        // Reset the event list (clear any remaining events)
+        eventList.clear(); // If using PriorityQueue, clear it
 
-	/**
-	 * Attempts to start service at all service points that have customers waiting.
-	 * This represents the C-phase events in the simulation.
-	 */
-	private void tryCEvents() {
-		for (ServicePoint p: servicePoints){
-			if (!p.isReserved() && p.isOnQueue()){
-				p.beginService();
-			}
-		}
-	}
+        // Reset paused state
+        paused = false;
 
-	/**
-	 * Gets the time of the next scheduled event.
-	 *
-	 * @return The time of the next event
-	 */
-	private double currentTime(){
-		return eventList.getNextTime();
-	}
+        // Optionally, reset the clock or service points if necessary
+        clock.setTime(0);
 
-	/**
-	 * Checks if the simulation should continue.
-	 *
-	 * @return True if the simulation should continue, false otherwise
-	 */
-	private boolean simulate() {
-		Trace.out(Trace.Level.INFO, "Time is: " + clock.getTime());
-		return clock.getTime() < simulationTime;
-	}
+        // Reinitialize service points if needed
+        for (ServicePoint sp : servicePoints) {
+            sp.reset(); // Assuming you have a reset method in ServicePoint
+        }
+    }
 
-	/**
-	 * Delays the simulation thread based on the current delay setting.
-	 */
-	private void delay() {
-		Trace.out(Trace.Level.INFO, "Delay " + delay);
-		try {
-			sleep(delay);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
+    /**
+     * Processes all B-phase events scheduled for the current time.
+     */
+    private void runBEvents() {
+        while (eventList.getNextTime() == clock.getTime()){
+            runEvent(eventList.remove());
+        }
+    }
 
-	/**
-	 * Initializes the simulation.
-	 * To be implemented by concrete subclasses.
-	 */
-	protected abstract void initialization();
+    /**
+     * Attempts to start service at all service points that have customers waiting.
+     * This represents the C-phase events in the simulation.
+     */
+    private void tryCEvents() {
+        for (ServicePoint p: servicePoints){
+            if (!p.isReserved() && p.isOnQueue()){
+                p.beginService();
+            }
+        }
+    }
 
-	/**
-	 * Processes a single event.
-	 * To be implemented by concrete subclasses.
-	 *
-	 * @param t The event to process
-	 */
-	protected abstract void runEvent(Event t);
+    /**
+     * Gets the time of the next scheduled event.
+     *
+     * @return The time of the next event
+     */
+    private double currentTime(){
+        return eventList.getNextTime();
+    }
 
-	/**
-	 * Produces and reports the simulation results.
-	 * To be implemented by concrete subclasses.
-	 */
-	protected abstract void results();
+    /**
+     * Checks if the simulation should continue.
+     *
+     * @return True if the simulation should continue, false otherwise
+     */
+    private boolean simulate() {
+        Trace.out(Trace.Level.INFO, "Time is: " + clock.getTime());
+        return clock.getTime() < simulationTime;
+    }
+
+    /**
+     * Delays the simulation thread based on the current delay setting.
+     */
+    private void delay() {
+        Trace.out(Trace.Level.INFO, "Delay " + delay);
+        try {
+            sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Initializes the simulation.
+     */
+    protected abstract void initialization();
+
+    /**
+     * Processes a single event.
+     *
+     * @param t The event to process
+     */
+    protected abstract void runEvent(Event t);
+
+    /**
+     * Produces and reports the simulation results.
+     */
+    protected abstract void results();
 }
