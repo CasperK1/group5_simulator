@@ -52,7 +52,6 @@ public class IntegerFieldController {
             }
         });
 
-        // Optional: Add a focus lost listener to revert if still invalid when focus is lost
         field.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
             if (wasFocused && !isFocused) { // Lost focus
                 // Re-validate the current text

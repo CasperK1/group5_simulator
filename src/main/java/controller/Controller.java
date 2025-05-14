@@ -182,16 +182,11 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
         DoubleFieldController.setupField(expressMultiplier, 0.1, 10, config::setExpressMultiplier);
         DoubleFieldController.setupField(selfCheckoutMultiplier, 0.1, 10, config::setSelfCheckoutMultiplier);
 
-        delayField.textProperty().addListener((observable, oldValue, newValue) -> {
-            System.out.println("Delay field changed to: " + newValue);
-            try {
-                long delay = Long.parseLong(newValue);
-                if (engine != null) {
-                    engine.setDelay(delay);
-                    System.out.println("Engine delay updated to: " + delay + " ms");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid delay input: " + newValue);
+        // Delay field
+        IntegerFieldController.setupField(delayField, 50, 1000, delay -> {
+            if (engine != null) {
+                engine.setDelay(delay);
+                System.out.println("Engine delay updated to: " + delay + " ms");
             }
         });
     }
@@ -280,7 +275,7 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
      */
     @FXML
     public void decreaseSpeed() {
-        if (engine != null && !paused) {
+        if (engine != null && !paused ) {
             long newDelay = (long) (engine.getDelay() + 20);
             engine.setDelay(newDelay);
             delayField.setText(String.valueOf(newDelay));
@@ -293,8 +288,8 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
      */
     @FXML
     public void increaseSpeed() {
-        if (engine != null && !paused) {
-            long newDelay = (long) (engine.getDelay() - 20);
+        if (engine != null && !paused && engine.getDelay() > 50) {
+            long newDelay = (long) (engine.getDelay() - 20 );
             engine.setDelay(newDelay);
             delayField.setText(String.valueOf(newDelay));
             System.out.println("Delay increased to: " + engine.getDelay() + " ms");
@@ -397,7 +392,6 @@ public class Controller implements IControllerVtoM, IControllerMtoV {
      */
     @FXML
     public void saveConfiguration() {
-        // For now, just show an alert that config is saved (without DB)
         String name = configNameField.getText();
         if (name == null || name.trim().isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Warning",
